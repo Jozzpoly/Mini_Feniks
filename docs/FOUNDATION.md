@@ -4,6 +4,8 @@
 
 **Aktualizacja po pierwszym graniu:** dalsza implementacja jest ponownie wstrzymana na polecenie Ownera. Poniższy tekst zachowuje roboczą hipotezę pierwszej budowy; jej braki oceniamy w [BUILD-01.md](BUILD-01.md#ocena-po-pierwszym-graniu). Gracz ma być pełnoprawnym aktorem świata. Wspólne wykonanie czynności, formy powiązane z używaniem, spójna reprezentacja terenu i podtrzymujące się możliwości życia wymagają dopracowania przed wznowieniem kodu.
 
+**Decyzja Ownera o braku immunitetu:** wszystkie opisane tutaj techniki oraz zalecenia zachowania są odwoływalnymi hipotezami, również podział stanu, model tożsamości, czas, solver i kontroler. [AGENTS.md](../AGENTS.md) ma pierwszeństwo przed dawnym planem; [aktualny osąd](BUILD-01.md#osąd-po-decyzji-ownera-i-ponownym-odczycie-donorów) nie ratyfikuje fundamentu.
+
 ## Osąd gotowości
 
 Cel i najważniejsze zależności są dostatecznie rozpoznane, żeby zaproponować pierwszy wspólny przyrost. Dalsze ogólne audyty oraz doskonalenie pełnego projektu przyniosą obecnie mniej niż budowa po osobnej zgodzie Ownera. Skuteczność kontaktu, postur, żywej rewizji i dalszego życia wymaga uruchomienia; nie można jej zamknąć opisem.

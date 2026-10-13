@@ -17,7 +17,7 @@ MiniFeniks czerpie z szerokiej wizji Feniksa. Jeśli po dłuższym tworzeniu, te
 **Właściwa budowa rozpoczęta po jawnej zgodzie Ownera 13.10.2026.** Powstał pierwszy działający przyrost jednej krainy: geografia 3D, dom z części i rzeczywistym wejściem, dwoje mieszkańców, materialna torba, prywatna wiedza, potrzeby, miejscowa edycja oraz zapis historii. Repozytorium pozostaje trwałym źródłem projektu.
 
 - [Fundament i pierwszy ruch](docs/FOUNDATION.md): decyzje robocze, możliwość rozbudowy świata, granice dowodów oraz pierwszy przyrost do oceny.
-- [Źródła i nauka z donorów](docs/SOURCES.md): przypięte publiczne źródła i zakres ich przydatności.
+- [Źródła i nauka z donorów](docs/SOURCES.md): przypięte źródła projektów i zakres ich przydatności.
 - [Instrukcje prowadzenia pracy](AGENTS.md): ciągłość, autoryzacja i uczciwa ocena rezultatów.
 - [Pierwsza kampania](docs/BUILD-01.md): wykonanie, sprawdzenia i granice bieżącego przyrostu.
 

@@ -1,6 +1,6 @@
 # Źródła i nauka z donorów
 
-13.10.2026 · wybrane publiczne źródła · odczyt kodu, bez nowej kwalifikacji gry
+13.10.2026 · wybrane źródła projektów · odczyt kodu, bez nowej kwalifikacji gry
 
 Donory dostarczają konkretnych podkompetencji i doświadczeń. Przenoszony mechanizm otrzymuje nową ocenę w kontekście Krainy. Poniższe piny nie są deklaracją najnowszego zdalnego HEAD, wdrożenia lub Owner PASS MiniFeniksa.
 
@@ -15,6 +15,29 @@ Donory dostarczają konkretnych podkompetencji i doświadczeń. Przenoszony mech
 - [src/solver-owned-character.js](https://github.com/Jozzpoly/Box3d-Character-Controler/blob/e7a98beaca4c010e056c31db97b33c05b4610e38/src/solver-owned-character.js) i [scripts/e2-1-localization.mjs](https://github.com/Jozzpoly/Box3d-Character-Controler/blob/e7a98beaca4c010e056c31db97b33c05b4610e38/scripts/e2-1-localization.mjs): wcześniejsza native kapsuła 1,80 m, 80 kg, z blokadą obrotu i ograniczonym napędem poziomym; rzeczywista konstrukcja próby stopni. [Historyczny zapis E2](https://github.com/Jozzpoly/Box3d-Character-Controler/blob/e7a98beaca4c010e056c31db97b33c05b4610e38/docs/E2_1_LOCALIZATION.md) opisuje blokowanie stopni i próby większego napędu. Nie wykonano teraz testów; wynik nie obala wszystkich modeli native mieszkańca.
 
 Przydatne: źródło zachowania lokomocji, zapytań podparcia, matematyki i wcześniejszych falsyfikatorów. Granica: wiele zwykłych V1 nie ustanawia kontaktu wielu osób; E19 nie kwalifikuje chwytu dwóch native ciał, naszego chodu, schodów, postur lub żywego odczytu. Decyzja native-first w `FOUNDATION.md` jest nowym rozwiązaniem do sprawdzenia.
+
+Ponowny odczyt: [constraint-velocity-character.js](https://github.com/Jozzpoly/Box3d-Character-Controler/blob/e7a98beaca4c010e056c31db97b33c05b4610e38/src/constraint-velocity-character.js) ogranicza pozostałą prędkość względem aktywnej przeszkody, zachowując kierunek styczny. Wykonano oryginalny [donor-v1-smoke.mjs](https://github.com/Jozzpoly/Box3d-Character-Controler/blob/e7a98beaca4c010e056c31db97b33c05b4610e38/scripts/donor-v1-smoke.mjs) z Box3D 0.1.1: exit 0, przesunięcie po zwolnieniu blokowanego ruchu V1 **0.000 m**, starszy wariant kontrolny **1.282 m**, błąd odtworzenia solvera **6.06e-9**. Skrypt i kod donora pozostały niezmienione; podłączono zainstalowane wiązanie. To wąski wynik mechaniczny, bez nowego Owner free play i porównania odczucia z MiniFeniksem. [DONOR_CONTRACT.md](https://github.com/Jozzpoly/Box3d-Character-Controler/blob/e7a98beaca4c010e056c31db97b33c05b4610e38/docs/DONOR_CONTRACT.md) wskazuje wcześniejszą akceptację Owner próbki `bc06ca9`. Odzyskujemy jakość zachowania; nie wybieramy automatycznie analitycznego ciała ani wszystkich dawnych stałych.
+
+## Autorstwo — relacje i przyjęcie gestu
+
+| Donor / pin | Rzeczywisty mechanizm | Granica transferu |
+| --- | --- | --- |
+| [HomeScan, f2c3693](https://github.com/Jozzpoly/HomeScan-Web-Builder/tree/f2c36937062ae431d58d05955c2bc0978c179a13) — repo dostępne właścicielowi | `packages/editor/src/transform-session.ts` i `apps/web/src/building-gizmo.ts`: podgląd, walidacja, anulowanie; App przyjmuje jeden nazwany command i pomija pusty ruch. Otwór ma gospodarza `wallId`, split remapuje otwory, placement przenosi kompozycję. | Walidacja samego gestu placement sprawdza skończone liczby, nie zajęcie przez żywego człowieka. Odbudowa obrazu i historia dokumentu nie kwalifikują ciągłości mieszkańców. |
+| [JURE, d971b8b](https://github.com/Jozzpoly/Jozz-Universal-Rig-Editor/tree/d971b8bef5dd7c65b78884b6b449e1f5ab0e7425) | `src/editor/transform-target.ts` przelicza world pose do lokalnego układu gospodarza; `src/editor/session.ts` rozdziela preview/commit/cancel. Przesunięcie elementu zachowuje lokalne ramy. | `role` ramy jest metadanymi; nie ustanawia siadu, podparcia ani działania. To nie gotowa hierarchia domu i wyposażenia. |
+| [ANVIL, 29c83ea](https://github.com/Jozzpoly/PROJECT-ANVIL-Machine-Matter-Physical-Fabric-Laboratory/tree/29c83ea3256a15923a7db648f2b03c7481223b42) — ścieżka badawcza poza `main` | `src/studio-recovery/source.ts`: tworzenie, ekstrudowanie, usuwanie i naprawa zależnych odwołań z historią autora. Nierozwiązana intencja może pozostać po usunięciu formy. | Dialekt komórek i mechanika maszyn nie przesądzają form krainy. `src/studio-r2/app.ts` po Stop/Run tworzy świeży runtime; nie jest donorem żywego cofania lub zapisu historii świata. |
+
+To referencje dla przebudowy prymitywnego autorstwa MiniFeniksa. Dawne wykonane próby podkompetencji zachowują własny zakres; teraz odczytano kod, bez nowego testu użytkowego lub próby edycji zamieszkanego świata. Wartościowa transakcja dokumentu nie oznacza zgody na cofanie przeżytych skutków.
+
+## Llm-Live-NPC — czynność, przerwanie i następna sprawa
+
+[Pin 555e64c](https://github.com/Jozzpoly/Llm-Live-NPC/tree/555e64cf5e3f0cf2bf087361eef21298b2e11bdc) pochodzi z rozwijanej ścieżki badawczej; nie utożsamiamy go ze starszym domyślnym `main` ani gotową kompetencją MiniFeniksa.
+
+- [resident-causal-execution-coordinator.ts](https://github.com/Jozzpoly/Llm-Live-NPC/blob/555e64cf5e3f0cf2bf087361eef21298b2e11bdc/src/spc-next/resident-causal-execution-coordinator.ts): jedna sprawa i wykonanie obejmują dojście, podjęcie, niesienie i odłożenie. Sam pickup nie kończy zobowiązania dostarczenia tej rzeczy.
+- [spc-world-runtime.ts](https://github.com/Jozzpoly/Llm-Live-NPC/blob/555e64cf5e3f0cf2bf087361eef21298b2e11bdc/src/spc-next/spc-world-runtime.ts): gracz i uprawnione wykonanie mieszkańca korzystają ze wspólnego materialnego rozstrzygnięcia; położenie, widoczność i posiadanie pochodzą ze świata.
+- [five-resident-ordinary-player-contact.integration.test.ts](https://github.com/Jozzpoly/Llm-Live-NPC/blob/555e64cf5e3f0cf2bf087361eef21298b2e11bdc/src/spc-next/five-resident-ordinary-player-contact.integration.test.ts): sprawdzana jest przerwa w niesieniu, zachowanie powiązania i późniejsze rzeczywiste odłożenie tej samej skrzyni. Krótkie „Tak?” nie ustanawia zrozumienia lub zgody.
+- [five-resident-unified-living-runtime.integration.test.ts](https://github.com/Jozzpoly/Llm-Live-NPC/blob/555e64cf5e3f0cf2bf087361eef21298b2e11bdc/src/spc-next/five-resident-unified-living-runtime.integration.test.ts): wynik działania może uruchomić nową sprawę opartą na prywatnie poznanej rzeczy; nieznana rzecz jest odrzucana. W tej próbie odpowiedź jest podstawiona przez `fetcher`, a poznanie wywołane ręcznie.
+
+W tym runie odczytano ścieżki i asercje; nie uruchomiono nowych testów ani usług modeli. Donor daje silniejszą granicę próby/postępu/przerwania/wyniku, nie fizyczny chwyt 3D: jego materialne posiadanie jest modelem 2D. Przygotowane obowiązki i pojedynczy nowy wybór nie dowodzą podtrzymującego się życia. Transfer wymaga połączenia z rzeczywistym ciałem, obserwacją, trwającymi możliwościami i zapisem krainy.
 
 ## Wiązanie i rzeczywisty cykl native geometrii
 
