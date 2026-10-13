@@ -32,6 +32,8 @@ V1 jest źródłem doświadczeń, zapytań o podparcie i referencji zachowania. 
 
 **Nowy koszt jest istotny:** chód, schody, tarcie, stabilizacja, siadanie i noszenie wymagają własnej kwalifikacji. Samo dynamiczne ciało z poziomą siłą nie jest kompetentnym człowiekiem. Podnoszenie na stopień wymaga osiągalnego podparcia, prześwitu i skończonego wysiłku; reakcja na dynamiczną podporę trafia do niej przeciwnie. Brak warunków oznacza zatrzymanie lub upadek. Nie tworzymy pionowego napędu utrzymującego osobę w powietrzu.
 
+Odczyt rzeczywistego `SolverOwnedCharacter` oraz konstrukcji prób E2 potwierdza, że donor miał już nieruchomą względem obrotu native kapsułę z ograniczonym poziomym napędem. Historyczny zapis E2 wskazuje blokadę zwykłych stopni mimo zwiększania napędu i tarcia; nie powtórzono teraz tej próby. Z kolei native `SetCapsule` w wybranym pinie usuwa kontakty zmienianego kształtu. Zmienna postura wymaga jawnej polityki masy, jej środka i bezwładności; nie jest bezkosztową interpolacją bryły. Jedna osoba nie musi oznaczać jednej niezmiennej kapsuły. Źródła i dokładny zakres dowodów są w [SOURCES.md](SOURCES.md).
+
 Napęd ruchu i stabilizacja orientacji mają jawne ograniczenia siły oraz momentu. Ewentualne ograniczenie obrotu musi być zadeklarowaną idealizacją, nie dowodem fizycznej równowagi. Postura jest jawną idealizacją sterowanego ciała. Ciągła zmiana respektuje zajętą przestrzeń i rzeczywiste podparcie. Nie deklarujemy pełnej biomechaniki. Matematyka E19 może pomóc w chwycie, ale jej punktowa masa nosiciela i `playerDeltaV` nie są gotowym modelem dwóch native ciał. Adaptacja musi uwzględnić punkty oraz bezwładność obu stron, jawne limity i pojedynczą reakcję.
 
 Box3D z wiązaniem 0.1.1 jest roboczym kandydatem. Nie wykazano przewagi kosztu lub gotowości nowej całości. Zmienimy napęd, model ciała lub adapter, jeżeli kontakt wymaga narastających wyjątków albo kompetencja nie daje się osiągnąć. Zachowujemy źródło krainy, ID i jej sens przy tej zmianie. Referencja V1 pomaga ocenić regresję; nie budujemy osobnych konkurencyjnych światów.
@@ -56,11 +58,17 @@ Próba projektowa rozrostu: dołączyć ziemię za znanym grzbietem, gdy osoba n
 
 Budowa jest inkrementalna. Najpierw powstają rzeczywiste rekordy tego miejsca, wspólny krok, obraz i materialne wykonanie. Do tej samej całości wchodzą lokalna poprawka i pierwszy odczyt, potem bogatsza kompozycja formy, dalsze możliwości oraz kolejne osoby. Wewnętrzny stan pośredni nie jest osobnym produktem lub uzasadnieniem zakończenia pracy.
 
+**Najwcześniejszy sprawdzian ciała odbywa się w tym domu:** ta sama osoba z tą samą torbą przechodzi rzeczywiste wejście, odkłada rzecz i przechodzi do odpoczynku oraz z powrotem. Sprawdzamy stopień, reakcję ciężaru, odtwarzanie kontaktów przy zmianie postury i zablokowane rozwinięcie ciała obok przeszkody. Nie zastępujemy wejścia rampą diagnostyczną ani odpoczynku samą animacją. Teleport, przenikanie, anulowanie reakcji torby lub pionowy napęd podnoszący bez osiągalnej podpory obalają bieżącą hipotezę. Poprawiamy ją w tej samej krainie przed dokładaniem czynności; kompozycja geografii, obrazu i własnych powodów mieszkańców może postępować równolegle.
+
 Dom ma własne źródło części, wejście ze schodami, powierzchnię odkładania i miejsce odpoczynku. Region od początku ma kompozycję dolin/grzbietów, odpływu, siedlisk i dalszych miejsc. Szkic profili, pusta panorama lub równomierny scatter nie kwalifikują naturalności. Charakter obrazu i czytelność zwykłej czynności poprawiamy od początku. Konkretna mapa, wymiary i historie osób pozostają propozycjami.
 
 Pierwszy checkpoint obejmuje definicje/rewizje, obecne instancje, zakończony czas, wykonane skutki, osoby, ich sprawy i prywatną pamięć. Aktywny chwyt/podparcie odnoszą się do trwałej rzeczy/części, lokalnego miejsca i wersji geometrii. Reprezentacje odbudowujemy i walidujemy przed wznowieniem. Nie obiecujemy identycznych warm-startów solvera lub migracji wszystkich dawnych eksperymentów.
 
+Odczyt ma jawny porządek: finalne kształty i masa, końcowy transform z poprawną bezwładnością, zapisane prędkości, następnie związki oraz dopiero wykonanie. Sam brak manifoldów przed pierwszym wznowionym krokiem nie dowodzi utraty zapisanej podpory. Tę kolejność sprawdzimy także na obróconej niesymetrycznej rzeczy, przed pierwszym impulsem chwytu.
+
 Pierwsza rewizja zachowuje części i użycia, zmienia wskazany zakres i ponownie sprawdza bieżące zajęcie. Konflikt z człowiekiem, aktywnym chwytem lub używaną podporą wstrzymuje przyjęcie. Bogatsza przebudowa dotyczy własnej wnęki/skraju tego samego domu, ze wskazanym następstwem podzielonej części. Prowadzący przygotuje formę; Owner nie otrzymuje zadania programowania lub obowiązkowego modelowania.
+
+Pierwsza lokalna wymiana geometrii zachowuje istniejące native ciało, przygotowuje i sprawdza nowe kształty, a następnie usuwa stare w zatrzymanej granicy wspólnego kroku. Nie wykonujemy kroku ze zdublowaną geometrią. Nieudane przygotowanie pozostawia poprzednią wersję; masę finalizujemy po udanej wymianie. Adapter odróżnia skutki wycofania reprezentacji od rzeczywistego puszczenia przedmiotu lub utraty podparcia. Aktualna ścieżka API nie wymaga resetu świata, ale nie jest jeszcze działającą transakcją MiniFeniksa.
 
 Pierwszy **wynik do oceny** obejmuje łącznie:
 
