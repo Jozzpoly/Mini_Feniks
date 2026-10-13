@@ -10,6 +10,8 @@ MiniFeniks czerpie z szerokiej wizji Feniksa. Jeśli po dłuższym tworzeniu, te
 
 ## Bieżący stan — 13.10.2026
 
+**[Otwórz krainę](https://mini-feniks-zywa-kraina.sweetcrane512.chatgpt.site)** — prywatny podgląd właściciela; przy pierwszym wejściu wybierz swoje konto ChatGPT.
+
 **Właściwa budowa rozpoczęta po jawnej zgodzie Ownera 13.10.2026.** Powstał pierwszy działający przyrost jednej krainy: geografia 3D, dom z części i rzeczywistym wejściem, dwoje mieszkańców, materialna torba, prywatna wiedza, potrzeby, miejscowa edycja oraz zapis historii. Repozytorium pozostaje trwałym źródłem projektu.
 
 - [Fundament i pierwszy ruch](docs/FOUNDATION.md): decyzje robocze, możliwość rozbudowy świata, granice dowodów oraz pierwszy przyrost do oceny.

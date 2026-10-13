@@ -37,3 +37,9 @@ Wspólne typy są w `src/world/types.ts`. Geografia daje wysokość i cieki, sou
 Schody i postury są nową kompetencją. Zmiana kapsuły usuwa kontakty. Odtworzenie kończy kształty/masę przed transformem i prędkościami. Zmiana layoutu lub kamery nie wykonuje czasu. Powiększanie świata zachowuje ID i istniejące ślady. Udane testy nie kwalifikują piękna, jakości ruchu lub doświadczenia Ownera.
 
 Plan rozwija tę samą krainę; korygujemy go wobec rzeczywistych wyników i odnotowujemy pozostałe braki. Nie zamykamy pracy po samym uruchomieniu projektu.
+
+## Przekazanie pierwszego przyrostu
+
+Pierwsza wersja została opublikowana 13.10.2026 pod [prywatnym adresem krainy](https://mini-feniks-zywa-kraina.sweetcrane512.chatgpt.site); źródła gry są na głównej gałęzi repozytorium. Zgodność całego drzewa plików z wdrożonym źródłem została sprawdzona. Ogląd w przeglądarce doszedł do wyboru konta ChatGPT; nie uznano tego za sprawdzenie renderingu, wydajności ani doświadczenia gry.
+
+Do wznowienia: zacząć od rzeczywistego oglądu bliskiego domu i dalekiej krainy, czytelności ludzi i działania kontroli. Nie dodawać systemów przed rozpoznaniem widocznych słabości. Następnie rozwijać tę samą całość: realne tworzenie własnych form, materialne otoczenie i dalsze własne powody mieszkańców. Lista wcześniejszych zadań pozostaje kryterium kwalifikacji; sam obecny runtime nie spełnia całej wizji.
