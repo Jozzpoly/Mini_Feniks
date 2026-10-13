@@ -10,12 +10,19 @@ MiniFeniks czerpie z szerokiej wizji Feniksa. Jeśli po dłuższym tworzeniu, te
 
 ## Bieżący stan — 13.10.2026
 
-**Przygotowanie. Implementacja gry jeszcze się nie rozpoczęła i wymaga osobnej zgody Ownera.** Repozytorium jest trwałym punktem bieżących ustaleń i późniejszych rzeczywistych rezultatów. Publikujemy wybraną syntezę, bez przenoszenia całego archiwum rozmów i paczek.
+**Właściwa budowa rozpoczęta po jawnej zgodzie Ownera 13.10.2026.** Powstał pierwszy działający przyrost jednej krainy: geografia 3D, dom z części i rzeczywistym wejściem, dwoje mieszkańców, materialna torba, prywatna wiedza, potrzeby, miejscowa edycja oraz zapis historii. Repozytorium pozostaje trwałym źródłem projektu.
 
 - [Fundament i pierwszy ruch](docs/FOUNDATION.md): decyzje robocze, możliwość rozbudowy świata, granice dowodów oraz pierwszy przyrost do oceny.
 - [Źródła i nauka z donorów](docs/SOURCES.md): przypięte publiczne źródła i zakres ich przydatności.
 - [Instrukcje prowadzenia pracy](AGENTS.md): ciągłość, autoryzacja i uczciwa ocena rezultatów.
+- [Pierwsza kampania](docs/BUILD-01.md): wykonanie, sprawdzenia i granice bieżącego przyrostu.
 
 Robocze **6×4 km** jest propozycją początkowo przygotowanej geografii, nie zatwierdzoną granicą świata. Zachowujemy możliwość jego sensownego rozwoju. Nie zamawiamy teraz nieskończonego terenu lub infrastruktury na zapas.
 
-Nie ma jeszcze działającej krainy, pomiaru jej kosztu ani oceny doświadczenia gracza. Techniczna poprawność pojedynczego mechanizmu nie unieważnia słabego rzeczywistego doświadczenia.
+Pierwszy runtime używa Three.js i Box3D, fizyki 60 Hz oraz rzadszego wyboru z potrzeb i lokalnych świadectw. Mieszkańcy potrafią przejść własne wejście, odłożyć tę samą torbę, przyjąć niską posturę odpoczynku, wstać, podejść do skończonej porcji i wybrać dalszy zamiar. Edycja zmienia istniejącą część; nie jest jeszcze pełnym edytorem budowania krainy. Las i woda mają obecnie głównie reprezentację wizualną. Postura jest uproszczeniem, nie kwalifikacją biomechaniki lub siadu na ławie.
+
+Nie ma jeszcze Owner PASS, kwalifikacji długiego życia ani pomiaru kosztu na komputerze gracza. Testy nie rozstrzygają piękna lub odczucia ruchu.
+
+## Uruchomienie i sprawdzenie
+
+Node 22 lub nowszy: `npm ci`, następnie `npm run dev`. Produkcyjna paczka powstaje przez `npm run build`. `npm test` sprawdza dane, prywatne poznanie, źródło i rzeczywistą integrację native fizyki. Historia zapisuje się lokalnie w przeglądarce; można ją również zachować i otworzyć jako plik JSON. Ponowne otwarcie przywraca zapis, a nie tworzy po cichu nowego świata.

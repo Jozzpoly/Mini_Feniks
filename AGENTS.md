@@ -4,7 +4,7 @@ Czytaj `README.md`, `docs/FOUNDATION.md` i właściwe źródła przed kontynuacj
 
 ## Bieżąca autoryzacja
 
-Na 13.10.2026 dozwolone jest pogłębione przygotowanie, analiza źródeł i utrwalanie wybranych ustaleń w tym repozytorium. **Nie rozpoczynaj implementacji gry, scaffoldingu, instalacji jej zależności ani wdrożenia bez osobnej zgody Ownera.** Samo „kontynuuj” lub udostępnienie repozytorium nie odwołuje tej granicy. Po zgodzie zaktualizuj bieżący stan; nie utrzymuj starego zakazu wbrew nowemu poleceniu.
+13.10.2026 Owner jawnie zatwierdził rozpoczęcie właściwej implementacji MiniFeniksa i zniósł dotychczasowy zakaz. Dozwolona jest budowa, instalacja zależności, sprawdzenia, utrwalanie wyników w tym repozytorium i przygotowanie gry do rzeczywistego oglądu. Prowadzący sam wybiera kolejność i sposób wykonania. Nie wymagaj powtórnej zgody na już autoryzowane działania. Nie odtwarzaj starego zakazu z historycznych dokumentów.
 
 ## Kierunek i odpowiedzialność
 

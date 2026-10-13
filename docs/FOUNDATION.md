@@ -1,6 +1,6 @@
 # Fundament i pierwszy ruch
 
-13.10.2026 · propozycja przygotowana do oceny · bez implementacji gry
+13.10.2026 · fundament roboczy · implementacja rozpoczęta po jawnej zgodzie Ownera
 
 ## Osąd gotowości
 
@@ -79,4 +79,4 @@ Pierwszy **wynik do oceny** obejmuje łącznie:
 
 Te zachowania kwalifikujemy **podczas budowy**, przed uznaniem wspólnego wyniku za przyjęty. Brak kontaktowej wzajemności zatrzymuje dokładanie czynności, lecz nie musi zatrzymać komponowania i oglądu tej samej krainy. Drobną próbę diagnostyczną kończymy wyjaśnieniem konkretnej przyczyny.
 
-Nie wykonano jeszcze nowego runtime'u, sprawdzeń tego ciała, prób autorstwa, pomiaru regionu lub Owner testu. Pozostała granica startu to osobna zgoda na implementację. Po niej plan plików i sprawdzeń wynika z tego jednego zakresu, a nie z projektu całego wieloletniego Feniksa.
+Zgoda na implementację została udzielona 13.10.2026. Powstał pierwszy wspólny runtime tej krainy; bieżące wykonanie i granice zapisujemy w [BUILD-01.md](BUILD-01.md). Podczas budowy pierwsza hipoteza otrzymała skończony napęd wirtualnych nóg, native ciała i wzajemny podatny chwyt torby. Niska postura odpoczynku jest podpartym uproszczeniem; nie kwalifikuje jeszcze siadu na ławie. Nadal nie ma Owner PASS, pełnego autorstwa lub kwalifikacji wielogodzinnego życia. Dawny zakaz startu nie obowiązuje.
