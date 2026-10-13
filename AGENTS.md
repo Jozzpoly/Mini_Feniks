@@ -8,6 +8,16 @@ Czytaj `README.md`, `docs/FOUNDATION.md` i właściwe źródła przed kontynuacj
 
 Wcześniejsza zgoda 13.10.2026 umożliwiła powstanie pierwszego opublikowanego przyrostu. Nie traktuj jej jako nadrzędnej wobec późniejszego postoju. Nowa potwierdzona intencja: **gracz jest pełnoprawnym aktorem w tym samym świecie**. Kamera, tożsamość postaci gracza oraz dokładna forma uczestnictwa nie są jeszcze zamrożone.
 
+## Nadrzędna decyzja Ownera — brak immunitetu fundamentów (13.10.2026)
+
+**Wiążąca zasada domyślna:** Żaden fundament MiniFeniksa — architektura, model danych, fizyka, kontroler, interfejs, reprezentacja świata ani ich bieżące wykonanie — **nie otrzymuje trwałej ochrony tylko dlatego, że działa, przechodzi testy, kosztował wiele pracy lub został wcześniej oznaczony jako „zachować”**. Owner wymaga tej postawy domyślnie, chyba że wyraźnie postanowi inaczej w konkretnej sprawie.
+
+Pierwszy działający przyrost i 77 testów są wartościowym osiągnięciem i źródłem ograniczonych dowodów, **nie ratyfikacją fundamentów gry**. Słabe owoce w rzeczywistym doświadczeniu mogą uzasadniać także głęboką przebudowę albo wymianę świeżo stworzonego rozwiązania. Dotychczasowe zalecenia „zachować” w raportach oznaczają roboczych kandydatów, a nie nietykalne inwarianty kodu.
+
+Nie burz dla samego burzenia. Porównuj rzeczywiste zachowanie, koszty i ograniczenia, szukaj przyczyn oraz rozwiązań lepszych od obecnych. Regularnie wracaj do odpowiednich donorów po ich **rzeczywiście sprawdzone i dopracowane kompetencje**; uwzględniaj też ich porażki i zakres kwalifikacji. Nie zastępuj dojrzałej kompetencji uboższym substytutem i nie przedstawiaj regresji jako postępu tylko dlatego, że integracja jest prostsza. Dopuszczalną niedojrzałość etapu nazywaj jawnie i rozwijaj dalej.
+
+Chroń cel, Owner intent i przyczynowo ważną wiedzę, nie konkretną technikę realizacji. Ta zasada **nie znosi aktualnego postoju implementacji**; dotyczy oceny i przyszłych decyzji, a kod zmieniamy dopiero po nowej zgodzie Ownera.
+
 ## Kierunek i odpowiedzialność
 
 - Rozwijaj jedną krainę. Stany pośrednie pomagają odzyskać pracę i wykazać skutek; nie muszą stać się konkurencyjnymi produktami.
