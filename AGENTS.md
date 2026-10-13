@@ -4,7 +4,9 @@ Czytaj `README.md`, `docs/FOUNDATION.md` i właściwe źródła przed kontynuacj
 
 ## Bieżąca autoryzacja
 
-13.10.2026 Owner jawnie zatwierdził rozpoczęcie właściwej implementacji MiniFeniksa i zniósł dotychczasowy zakaz. Dozwolona jest budowa, instalacja zależności, sprawdzenia, utrwalanie wyników w tym repozytorium i przygotowanie gry do rzeczywistego oglądu. Prowadzący sam wybiera kolejność i sposób wykonania. Nie wymagaj powtórnej zgody na już autoryzowane działania. Nie odtwarzaj starego zakazu z historycznych dokumentów.
+**Po pierwszym graniu 13.10.2026 Owner ponownie wstrzymał dalszą implementację gry.** Aktualnie dozwolone są odczyt, analiza materiału z grania, diagnozy niezmienionego runtime'u, krytyczny przegląd kierunku oraz utrwalenie wniosków. Nie zmieniaj kodu gry, testów ani wdrożenia przed nowym poleceniem znoszącym ten postój. To świeża decyzja, a nie powrót do dawnego zakazu startu.
+
+Wcześniejsza zgoda 13.10.2026 umożliwiła powstanie pierwszego opublikowanego przyrostu. Nie traktuj jej jako nadrzędnej wobec późniejszego postoju. Nowa potwierdzona intencja: **gracz jest pełnoprawnym aktorem w tym samym świecie**. Kamera, tożsamość postaci gracza oraz dokładna forma uczestnictwa nie są jeszcze zamrożone.
 
 ## Kierunek i odpowiedzialność
 
@@ -12,6 +14,7 @@ Czytaj `README.md`, `docs/FOUNDATION.md` i właściwe źródła przed kontynuacj
 - MiniFeniks jest poważną realizacją ambicji Feniksa. Wąski pierwszy przyrost nie ustanawia niskiego docelowego pułapu.
 - Samodzielnie wybieraj techniczne kroki. Nie przekazuj Ownerowi programowania, konfiguracji lub rutynowych rozstrzygnięć, które możesz wykonać.
 - Rozróżniaj intencję Ownera, decyzję roboczą, dowód źródłowy, wykonany wynik i ocenę doświadczenia. Machine PASS nie zmienia Owner FAIL.
+- Czytaj ocenę pierwszego grania w `docs/BUILD-01.md`. Główne luki dotyczą wyczerpywania możliwości życia, rozdzielenia form od używania, autorstwa i niezgodności reprezentacji terenu. Więcej kilometrów lub bogatszy brain nie zastępuje rozwiązania tych związków.
 - Nie wracaj do pełnego audytu bez pytania, którego wynik może zmienić konkretną decyzję. Nie wymagaj sprawnego runtime'u jako warunku rozpoczęcia jego budowy.
 - Jeden prowadzący odpowiada za wspólne kontrakty i integrację. Niezależne zakresy można delegować z jasną własnością i bez sprzecznych równoległych przebudów.
 

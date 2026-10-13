@@ -12,6 +12,8 @@ MiniFeniks czerpie z szerokiej wizji Feniksa. Jeśli po dłuższym tworzeniu, te
 
 **[Otwórz krainę](https://mini-feniks-zywa-kraina.sweetcrane512.chatgpt.site)** — prywatny podgląd właściciela; przy pierwszym wejściu wybierz swoje konto ChatGPT.
 
+**Po pierwszym rzeczywistym graniu: implementacja wstrzymana na polecenie Ownera; trwa analiza fundamentu.** Pierwszy przyrost został uruchomiony, lecz doświadczenie życia i autorstwa wymaga gruntownej poprawy. Gracz ma być pełnoprawnym aktorem tej samej krainy. [Ocena i dalsze zależności](docs/BUILD-01.md#ocena-po-pierwszym-graniu).
+
 **Właściwa budowa rozpoczęta po jawnej zgodzie Ownera 13.10.2026.** Powstał pierwszy działający przyrost jednej krainy: geografia 3D, dom z części i rzeczywistym wejściem, dwoje mieszkańców, materialna torba, prywatna wiedza, potrzeby, miejscowa edycja oraz zapis historii. Repozytorium pozostaje trwałym źródłem projektu.
 
 - [Fundament i pierwszy ruch](docs/FOUNDATION.md): decyzje robocze, możliwość rozbudowy świata, granice dowodów oraz pierwszy przyrost do oceny.
@@ -23,7 +25,7 @@ Robocze **6×4 km** jest propozycją początkowo przygotowanej geografii, nie za
 
 Pierwszy runtime używa Three.js i Box3D, fizyki 60 Hz oraz rzadszego wyboru z potrzeb i lokalnych świadectw. Mieszkańcy potrafią przejść własne wejście, odłożyć tę samą torbę, przyjąć niską posturę odpoczynku, wstać, podejść do skończonej porcji i wybrać dalszy zamiar. Edycja zmienia istniejącą część; nie jest jeszcze pełnym edytorem budowania krainy. Las i woda mają obecnie głównie reprezentację wizualną. Postura jest uproszczeniem, nie kwalifikacją biomechaniki lub siadu na ławie.
 
-Nie ma jeszcze Owner PASS, kwalifikacji długiego życia ani pomiaru kosztu na komputerze gracza. Testy nie rozstrzygają piękna lub odczucia ruchu.
+Pierwszy ogląd potwierdził uruchomienie obrazu, lecz nie przyjęcie jakości gry. Diagnoza 20 minut niezmienionej symulacji wykazała wyczerpanie możliwości życia. Edytor ujawnił rozdzielenie materialnych form od miejsc używania, a analiza geografii — nieciągłości wysokości i różnice między podłożem obrazu oraz fizyki. Testy podkompetencji nie kwalifikują tych wartości; aktualny postój i konkretne dowody opisuje ocena pierwszego grania.
 
 ## Uruchomienie i sprawdzenie
 

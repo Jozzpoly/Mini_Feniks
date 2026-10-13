@@ -2,6 +2,8 @@
 
 13.10.2026 · fundament roboczy · implementacja rozpoczęta po jawnej zgodzie Ownera
 
+**Aktualizacja po pierwszym graniu:** dalsza implementacja jest ponownie wstrzymana na polecenie Ownera. Poniższy tekst zachowuje roboczą hipotezę pierwszej budowy; jej braki oceniamy w [BUILD-01.md](BUILD-01.md#ocena-po-pierwszym-graniu). Gracz ma być pełnoprawnym aktorem świata. Wspólne wykonanie czynności, formy powiązane z używaniem, spójna reprezentacja terenu i podtrzymujące się możliwości życia wymagają dopracowania przed wznowieniem kodu.
+
 ## Osąd gotowości
 
 Cel i najważniejsze zależności są dostatecznie rozpoznane, żeby zaproponować pierwszy wspólny przyrost. Dalsze ogólne audyty oraz doskonalenie pełnego projektu przyniosą obecnie mniej niż budowa po osobnej zgodzie Ownera. Skuteczność kontaktu, postur, żywej rewizji i dalszego życia wymaga uruchomienia; nie można jej zamknąć opisem.
@@ -79,4 +81,4 @@ Pierwszy **wynik do oceny** obejmuje łącznie:
 
 Te zachowania kwalifikujemy **podczas budowy**, przed uznaniem wspólnego wyniku za przyjęty. Brak kontaktowej wzajemności zatrzymuje dokładanie czynności, lecz nie musi zatrzymać komponowania i oglądu tej samej krainy. Drobną próbę diagnostyczną kończymy wyjaśnieniem konkretnej przyczyny.
 
-Zgoda na implementację została udzielona 13.10.2026. Powstał pierwszy wspólny runtime tej krainy; bieżące wykonanie i granice zapisujemy w [BUILD-01.md](BUILD-01.md). Podczas budowy pierwsza hipoteza otrzymała skończony napęd wirtualnych nóg, native ciała i wzajemny podatny chwyt torby. Niska postura odpoczynku jest podpartym uproszczeniem; nie kwalifikuje jeszcze siadu na ławie. Nadal nie ma Owner PASS, pełnego autorstwa lub kwalifikacji wielogodzinnego życia. Dawny zakaz startu nie obowiązuje.
+Zgoda na implementację została udzielona 13.10.2026. Powstał pierwszy wspólny runtime tej krainy; bieżące wykonanie i granice zapisujemy w [BUILD-01.md](BUILD-01.md). Podczas budowy pierwsza hipoteza otrzymała skończony napęd wirtualnych nóg, native ciała i wzajemny podatny chwyt torby. Niska postura odpoczynku jest podpartym uproszczeniem; nie kwalifikuje jeszcze siadu na ławie. Pierwsza ocena doświadczenia ujawniła istotne braki; obowiązuje późniejsze wstrzymanie implementacji opisane na początku dokumentu oraz w AGENTS.md.
