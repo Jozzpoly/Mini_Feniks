@@ -4,9 +4,9 @@ Czytaj `README.md`, `docs/FOUNDATION.md` i właściwe źródła przed kontynuacj
 
 ## Bieżąca autoryzacja
 
-**Po pierwszym graniu 13.10.2026 Owner ponownie wstrzymał dalszą implementację gry.** Aktualnie dozwolone są odczyt, analiza materiału z grania, diagnozy niezmienionego runtime'u, krytyczny przegląd kierunku oraz utrwalenie wniosków. Nie zmieniaj kodu gry, testów ani wdrożenia przed nowym poleceniem znoszącym ten postój. To świeża decyzja, a nie powrót do dawnego zakazu startu.
+**14.10.2026 Owner jawnie zakończył postój i zatwierdził wznowienie implementacji, przebudowę istniejących systemów oraz dalszy rozwój gry w repozytorium.** Prowadź rzeczywistą budowę i weryfikację jednej krainy. Dobieraj kolejność, technikę i delegację samodzielnie; nie zamieniaj zgody w kolejną ogólną kampanię przygotowawczą. Aktualizuj działającą prywatną grę wystarczająco wcześnie, aby feedback mógł zmieniać kierunek.
 
-Wcześniejsza zgoda 13.10.2026 umożliwiła powstanie pierwszego opublikowanego przyrostu. Nie traktuj jej jako nadrzędnej wobec późniejszego postoju. Nowa potwierdzona intencja: **gracz jest pełnoprawnym aktorem w tym samym świecie**. Kamera, tożsamość postaci gracza oraz dokładna forma uczestnictwa nie są jeszcze zamrożone.
+Wcześniejsza zgoda i postój z 13.10.2026 są historią projektu. Obowiązuje późniejsza zgoda z 14.10.2026. **Gracz jest pełnoprawnym aktorem w tym samym świecie**. Kamera, tożsamość postaci gracza oraz dokładna forma uczestnictwa nie są jeszcze zamrożone.
 
 ## Nadrzędna decyzja Ownera — brak immunitetu fundamentów (13.10.2026)
 
@@ -16,7 +16,7 @@ Pierwszy działający przyrost i 77 testów są wartościowym osiągnięciem i �
 
 Nie burz dla samego burzenia. Porównuj rzeczywiste zachowanie, koszty i ograniczenia, szukaj przyczyn oraz rozwiązań lepszych od obecnych. Regularnie wracaj do odpowiednich donorów po ich **rzeczywiście sprawdzone i dopracowane kompetencje**; uwzględniaj też ich porażki i zakres kwalifikacji. Nie zastępuj dojrzałej kompetencji uboższym substytutem i nie przedstawiaj regresji jako postępu tylko dlatego, że integracja jest prostsza. Dopuszczalną niedojrzałość etapu nazywaj jawnie i rozwijaj dalej.
 
-Chroń cel, Owner intent i przyczynowo ważną wiedzę, nie konkretną technikę realizacji. Ta zasada **nie znosi aktualnego postoju implementacji**; dotyczy oceny i przyszłych decyzji, a kod zmieniamy dopiero po nowej zgodzie Ownera.
+Chroń cel, Owner intent i przyczynowo ważną wiedzę, nie konkretną technikę realizacji. Brak immunitetu pozostaje nadrzędną zasadą po wznowieniu budowy; najnowsza zgoda na implementację nie ratyfikuje wcześniejszego fundamentu.
 
 ## Kierunek i odpowiedzialność
 

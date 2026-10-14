@@ -35,6 +35,26 @@ describe('resident knowledge and own reasons', () => {
     expect(chooseIntent(state,resident).targetId).toBe('bench');
     expect(resident.known[0].position).toEqual([200,0,0]);
   });
+  it('learns the absence of a removed rest place locally and chooses a still available place',()=>{
+    const state=world(),r=state.residents[0];observeResident(state,r);
+    expect(chooseIntent(state,r).targetId).toBe('bench');
+    state.source.places=state.source.places.filter(p=>p.id!=='bench');r.position=[100,0,100];state.seconds++;
+    observeResident(state,r);expect(chooseIntent(state,r).targetId).toBe('bench');
+    r.position=[0,0,0];observeResident(state,r);
+    expect(chooseIntent(state,r).targetId).toBe('other');
+    expect(r.known.find(k=>k.id==='bench')?.available).toBe(false);
+  });
+  it('stops routing around an absent wall only after a local witness of its absence',()=>{
+    const state=world(),r=state.residents[0];
+    state.source.home.parts=[{id:'wall',label:'ściana',position:[2,1,0],size:[.4,3,6],yaw:0,role:'wall',material:'stone',solid:true}];
+    observeResident(state,r);expect(r.knownParts.some(p=>p.id==='wall')).toBe(true);
+    state.source.home.parts=[];r.position=[100,0,100];state.seconds++;
+    observeResident(state,r);expect(r.knownParts.find(p=>p.id==='wall')?.present).not.toBe(false);
+    r.position=[0,0,0];observeResident(state,r);
+    expect(r.knownParts.find(p=>p.id==='wall')?.present).toBe(false);
+    const drive=stepLife(state,.25).get(r.id)!;
+    expect(drive.velocity[0]).toBeCloseTo(1.2,6);expect(drive.velocity[2]).toBeCloseTo(0,6);
+  });
   it('does not perceive a place through a solid wall', () => {
     const state=world(),resident=state.residents[0];resident.known=[];
     state.source.home.parts.push({id:'wall',label:'ściana',position:[2,1,0],size:[.4,3,6],yaw:0,material:'stone',role:'wall',solid:true});
@@ -126,6 +146,7 @@ describe('life drives actual physical execution', () => {
     const state=world(),resident=state.residents[0];resident.position=[3, .9, 7];resident.holding='bag';
     resident.known.push({id:'put',kind:'put',position:[2, .9, 0],seenAt:0,occupiedBy:null});state.source.places.find(p=>p.id==='put')!.position=[2,.9,0];
     resident.knownParts=[{id:'floor',role:'floor',position:[0,.78,0],size:[10,.24,7],yaw:0,seenAt:0},{id:'left',role:'wall',position:[-2.925,2.2,3.5],size:[4.15,2.6,.3],yaw:0,seenAt:0},{id:'right',role:'wall',position:[2.925,2.2,3.5],size:[4.15,2.6,.3],yaw:0,seenAt:0}];
+    state.source.home.parts=resident.knownParts.map(({id,position,size,yaw,role})=>({id,label:id,position,size,yaw,role,material:'stone',solid:true}));
     const drive=stepLife(state,.1).get(resident.id)!;
     // First approach lines up outside the opening rather than aiming through the wall.
     expect(drive.velocity[0]).toBeLessThan(-.7);
@@ -159,8 +180,9 @@ describe('life drives actual physical execution', () => {
 
   it('routes around privately known diagonal walls using the native yaw axis', () => {
     const state=world(),resident=state.residents[0];resident.position=[1,0,-3];resident.fatigue=.8;
-    state.source.places=[];resident.known=[{id:'bench',kind:'rest',position:[1,0,0],seenAt:0,occupiedBy:null}];
+    state.source.places=[{id:'bench',label:'ławka',kind:'rest',position:[1,0,0]}];resident.known=[{id:'bench',kind:'rest',position:[1,0,0],seenAt:0,occupiedBy:null}];
     resident.knownParts=[{id:'diagonal',position:[0,1,0],size:[4,3,.2],yaw:Math.PI/4,role:'wall',seenAt:0}];
+    state.source.home.parts=resident.knownParts.map(({id,position,size,yaw,role})=>({id,label:id,position,size,yaw,role,material:'stone',solid:true}));
     const first=stepLife(state,.1).get(resident.id)!;
     expect(Math.abs(first.velocity[0])).toBeGreaterThan(.2);
     for(let i=0;i<90;i++){
@@ -174,9 +196,10 @@ describe('life drives actual physical execution', () => {
   it('stages a rotated familiar doorway using native yaw world coordinates', () => {
     const state=world(),resident=state.residents[0];const angle=Math.PI/4,c=Math.cos(angle),sin=Math.sin(angle);
     const rotated=(v:[number,number,number]):[number,number,number]=>[c*v[0]+sin*v[2],v[1],-sin*v[0]+c*v[2]];
-    resident.position=rotated([3,.9,7]);resident.holding='bag';state.source.places=[];
+    resident.position=rotated([3,.9,7]);resident.holding='bag';state.source.places=[{id:'put',label:'stół',kind:'put',position:rotated([2,.9,0])}];
     resident.known=[{id:'put',kind:'put',position:rotated([2,.9,0]),seenAt:0,occupiedBy:null}];
     resident.knownParts=[{id:'floor',role:'floor',position:rotated([0,.78,0]),size:[10,.24,7],yaw:angle,seenAt:0},{id:'left',role:'wall',position:rotated([-2.925,2.2,3.5]),size:[4.15,2.6,.3],yaw:angle,seenAt:0},{id:'right',role:'wall',position:rotated([2.925,2.2,3.5]),size:[4.15,2.6,.3],yaw:angle,seenAt:0}];
+    state.source.home.parts=resident.knownParts.map(({id,position,size,yaw,role})=>({id,label:id,position,size,yaw,role,material:'stone',solid:true}));
     const drive=stepLife(state,.1).get(resident.id)!;const localX=c*drive.velocity[0]-sin*drive.velocity[2],localZ=sin*drive.velocity[0]+c*drive.velocity[2];
     expect(localX).toBeCloseTo(-3/Math.hypot(3,1.4)*1.2,6);
     expect(localZ).toBeCloseTo(-1.4/Math.hypot(3,1.4)*1.2,6);

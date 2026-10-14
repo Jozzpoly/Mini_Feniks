@@ -1,8 +1,10 @@
 import type { RegionSource, Resident, Thing, Vec3, WorldState } from './types';
+import { adoptRegionForms } from './forms';
 
 /** The authored coordinates are already world coordinates; never re-centre them. */
 export function createWorld(input: RegionSource): WorldState {
   const source = structuredClone(input);
+  adoptRegionForms(source);
   const homeY = source.home.position[1];
   const steps = source.home.parts.filter(part => part.role === 'step');
   const outsideY = steps.length ? Math.min(...steps.map(part => part.position[1] - part.size[1] / 2)) : homeY - .9;
@@ -38,6 +40,6 @@ export function createWorld(input: RegionSource): WorldState {
         foodPlace ? [foodPlace.position[0], foodPlace.position[1] + .06, foodPlace.position[2]] : [-2, homeY + 1.15, 0], null)];
   residents.forEach(p => { p.knownThings = things.filter(t => t.kind === 'food' || t.heldBy === p.id)
     .map(t => ({ id: t.id, kind: t.kind, position: [...t.position], seenAt: 0, available: t.heldBy === null })); });
-  return { schema: 1, worldId: `world:${source.id}`, tick: 0, seconds: 0, source, residents, things,
+  return { schema: 2, worldId: `world:${source.id}`, tick: 0, seconds: 0, source, residents, things,
     events: [], revisions: [] };
 }

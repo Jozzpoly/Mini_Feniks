@@ -39,6 +39,14 @@ describe('one evolving inhabited realm',()=>{
   await expect(s.load(encodeCheckpoint(edited))).rejects.toThrow(/geograf/);
   expect(s.save()).toBe(snapshot);s.dispose();
  });
+ it('rejects unsupported changed channel rules before replacing the physical history',async()=>{
+  const s=await createSession(createWorld(createRegion()),heightAt),snapshot=s.save(),oldPhysics=s.physics;
+  try{
+   const edited=decodeCheckpoint(snapshot);edited.source.channels[0].points[0][1]-=20;
+   await expect(s.load(encodeCheckpoint(edited))).rejects.toThrow(/geograf/);
+   expect(s.save()).toBe(snapshot);expect(s.physics).toBe(oldPhysics);
+  }finally{s.dispose();}
+ });
  it('a hungry resident can actually reach and eat the finite meal on the solid table',async()=>{
   const state=createWorld(createRegion()),r=state.residents[0];
   r.holding=null;state.things[0].heldBy=null;r.fatigue=.15;r.curiosity=.1;r.hunger=.8;

@@ -72,7 +72,7 @@ describe('persistent world history', () => {
   });
 
   it.each([
-    ['schema', (s: any) => { s.schema = 2; }],
+    ['schema', (s: any) => { s.schema = 99; }],
     ['nonfinite vector', (s: any) => { s.residents[0].position[0] = null; }],
     ['vector length', (s: any) => { s.things[0].velocity = [0, 0]; }],
     ['duplicate identity', (s: any) => { s.things[0].id = s.residents[0].id; }],
@@ -104,7 +104,7 @@ describe('persistent world history', () => {
     revisePart(state, 'wall:idle', { yaw: .1 });
     const encoded = JSON.parse(encodeCheckpoint(state));
     const reversed = (part: object) => Object.fromEntries(Object.entries(part).reverse());
-    encoded.source.home.parts = encoded.source.home.parts.map(reversed);
+    for(const form of encoded.source.forms)form.parts=form.parts.map(reversed);
     expect(decodeCheckpoint(JSON.stringify(encoded))).toEqual(state);
   });
 

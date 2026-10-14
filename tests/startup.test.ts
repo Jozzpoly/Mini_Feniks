@@ -23,4 +23,8 @@ describe('opening preserves the single lived history',()=>{
   const state=createWorld(createRegion());state.source.seed++;
   expect(()=>readStartingWorld({getItem:()=>encodeCheckpoint(state)})).toThrow(/geograf/);
  });
+ it('refuses altered channel definitions that the compiled height rule cannot use',()=>{
+  const state=createWorld(createRegion());state.source.channels[0].points[0][1]-=20;
+  expect(()=>readStartingWorld({getItem:()=>encodeCheckpoint(state)})).toThrow(/geograf/);
+ });
 });

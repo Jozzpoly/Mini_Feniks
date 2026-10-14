@@ -1,5 +1,7 @@
 import Box3D, { type Box3DModule, type b3BodyId, type b3ShapeId, type b3MeshData } from 'box3d.js/inline';
-import type { Drive, PartSource, Quat, Resident, Vec3, WorldState } from '../world/types';
+import type { Drive, PartSource, Quat, RegionSource, Resident, Thing, Vec3, WorldState } from '../world/types';
+import { sharedTerrainSurface } from '../world/terrain-surface';
+import { executeAction } from '../actors/actions';
 
 const MASS=80, GRAVITY=9.81, MAX_LEG_FORCE=1800, MAX_DRIVE_FORCE=240, MAX_GRIP_FORCE=120;
 let modulePromise: Promise<Box3DModule>|undefined;
@@ -21,6 +23,8 @@ export class WorldPhysics {
   readonly bodies=new Map<string,b3BodyId>();
   readonly metrics={maxSupportForce:0,maxGripForce:0,lastSupportForce:new Map<string,number>(),steps:0};
   private shapes=new Map<string,b3ShapeId>();
+  private partSignatures=new Map<string,string>();
+  private thingIds=new Set<string>();
   private meshes:b3MeshData[]=[];
   private halfHeights=new Map<string,number>();
   private groundFilter;
@@ -28,11 +32,12 @@ export class WorldPhysics {
   private disposed=false;
   private gripStrain=new Map<string,number>();
 
-  constructor(private b3:Box3DModule,state:WorldState,ground:(x:number,z:number)=>number){
+  constructor(private b3:Box3DModule,state:WorldState,private ground:(x:number,z:number)=>number){
     const def=b3.b3DefaultWorldDef();def.gravity=[0,-GRAVITY,0];def.enableSleep=true;
     this.world=b3.b3CreateWorld(def);
     this.groundFilter=b3.b3DefaultQueryFilter();this.groundFilter.maskBits=3n;
-    this.installGround(state.source.extent,ground);
+    try{
+    this.installGround(state.source,ground);
     for(const part of state.source.home.parts)if(part.solid)this.installPart(part);
     for(const a of state.residents){
       const d=b3.b3DefaultBodyDef();d.type=b3.b3BodyType.b3_dynamicBody;d.position=[...a.position];d.rotation=[...a.rotation];
@@ -43,34 +48,53 @@ export class WorldPhysics {
       b3.b3Body_SetTransform(body,a.position,a.rotation);
       b3.b3Body_SetLinearVelocity(body,a.velocity);b3.b3Body_SetAngularVelocity(body,a.angularVelocity);
     }
-    for(const t of state.things){
-      if(t.consumed)continue;
-      const d=b3.b3DefaultBodyDef();d.type=b3.b3BodyType.b3_dynamicBody;d.position=[...t.position];d.rotation=[...t.rotation];d.linearDamping=.03;d.angularDamping=.05;
-      const body=b3.b3CreateBody(this.world,d), s=b3.b3DefaultShapeDef();s.filter.categoryBits=2n;
-      s.density=t.mass/(t.size[0]*t.size[1]*t.size[2]);s.baseMaterial.friction=.6;s.baseMaterial.restitution=0;
-      this.shapes.set(t.id,b3.b3CreateBoxShape(body,s,t.size[0]/2,t.size[1]/2,t.size[2]/2));this.bodies.set(t.id,body);
-      b3.b3Body_SetTransform(body,t.position,t.rotation);
-      b3.b3Body_SetLinearVelocity(body,t.velocity);b3.b3Body_SetAngularVelocity(body,t.angularVelocity);
-    }
+    this.reconcileThings(state.things);
+    }catch(error){this.dispose();throw error;}
   }
 
-  private installGround(extent:[number,number],height:(x:number,z:number)=>number){
-    // Sampling geometry is not a world occupancy grid. Refine the inhabited neighbourhood.
-    const axis=(span:number)=>Array.from(new Set([...Array.from({length:Math.ceil(span/40)+1},(_,i)=>-span/2+i*40),...Array.from({length:129},(_,i)=>-128+i*2),span/2])).sort((a,b)=>a-b);
-    const xs=axis(extent[0]),zs=axis(extent[1]),v=new Float32Array(xs.length*zs.length*3),idx:number[]=[];
-    for(let j=0;j<zs.length;j++)for(let i=0;i<xs.length;i++){
-      const n=j*xs.length+i;v.set([xs[i],height(xs[i],zs[j]),zs[j]],n*3);
-      if(j<zs.length-1&&i<xs.length-1){const b=n+xs.length;idx.push(n,b,n+1,n+1,b,b+1);}
-    }
-    const mesh=this.b3.b3CreateMesh(v,new Uint32Array(idx));if(!mesh)throw new Error('Nie udało się utworzyć geometrii terenu');
+  private installGround(source:RegionSource,height:(x:number,z:number)=>number){
+    const surface=sharedTerrainSurface(source,height);
+    const mesh=this.b3.b3CreateMesh(surface.vertices,surface.indices);if(!mesh)throw new Error('Nie udało się utworzyć geometrii terenu');
     this.meshes.push(mesh);const d=this.b3.b3DefaultBodyDef(),body=this.b3.b3CreateBody(this.world,d),s=this.b3.b3DefaultShapeDef();s.baseMaterial.friction=.7;
     this.b3.b3CreateMeshShape(body,s,mesh,[1,1,1]);this.bodies.set('terrain',body);
+  }
+
+  groundHeightAt(x:number,z:number):number|null{
+    const query=this.b3.b3DefaultQueryFilter();query.maskBits=1n;
+    const origin=this.ground(x,z)+100;
+    const hit=this.b3.b3World_CastRayClosest(this.world,[x,origin,z],[0,-200,0],query);
+    return hit.hit?hit.point[1]:null;
   }
 
   private installPart(part:PartSource){
     const d=this.b3.b3DefaultBodyDef();d.position=[...part.position];d.rotation=yawQuat(part.yaw);
     const body=this.b3.b3CreateBody(this.world,d),s=this.b3.b3DefaultShapeDef();s.baseMaterial.friction=.65;
     this.shapes.set(part.id,this.b3.b3CreateBoxShape(body,s,...part.size.map(n=>n/2) as Vec3));this.bodies.set(part.id,body);
+    this.partSignatures.set(part.id,JSON.stringify(part));
+  }
+
+  /** Born portions enter the same solver; existing bodies retain their motion and contacts. */
+  reconcileThings(things:Thing[]){
+    const b=this.b3,prepared:{id:string;body:b3BodyId;shape:b3ShapeId}[]=[];
+    try{
+      for(const t of things){
+        if(t.consumed||this.thingIds.has(t.id))continue;
+        if(this.bodies.has(t.id))throw new Error('Tożsamość rzeczy koliduje z istniejącym ciałem.');
+        const d=b.b3DefaultBodyDef();d.type=b.b3BodyType.b3_dynamicBody;d.position=[...t.position];d.rotation=[...t.rotation];d.linearDamping=.03;d.angularDamping=.05;
+        const body=b.b3CreateBody(this.world,d);
+        const s=b.b3DefaultShapeDef();s.filter.categoryBits=2n;s.density=t.mass/(t.size[0]*t.size[1]*t.size[2]);s.baseMaterial.friction=.6;s.baseMaterial.restitution=0;
+        let shape:b3ShapeId;
+        try{shape=b.b3CreateBoxShape(body,s,t.size[0]/2,t.size[1]/2,t.size[2]/2);if(!b.b3Shape_IsValid(shape))throw new Error('Nie udało się przygotować ciała rzeczy.');}
+        catch(error){b.b3DestroyBody(body);throw error;}
+        prepared.push({id:t.id,body,shape});
+        b.b3Body_SetTransform(body,t.position,t.rotation);b.b3Body_SetLinearVelocity(body,t.velocity);b.b3Body_SetAngularVelocity(body,t.angularVelocity);
+      }
+    }catch(error){for(const p of prepared)b.b3DestroyBody(p.body);throw error;}
+    const active=new Set(things.filter(t=>!t.consumed).map(t=>t.id));
+    for(const id of this.thingIds)if(!active.has(id)){
+      b.b3DestroyBody(this.bodies.get(id)!);this.bodies.delete(id);this.shapes.delete(id);this.thingIds.delete(id);
+    }
+    for(const p of prepared){this.bodies.set(p.id,p.body);this.shapes.set(p.id,p.shape);this.thingIds.add(p.id);}
   }
 
   /** Called at a paused completed-step boundary. No solve occurs with duplicate geometry. */
@@ -81,6 +105,36 @@ export class WorldPhysics {
     const next=this.b3.b3CreateBoxShape(body,def,...part.size.map(n=>n/2) as Vec3);
     if(!this.b3.b3Shape_IsValid(next))throw new Error('Nie udało się przygotować nowego kształtu');
     this.b3.b3DestroyShape(old,false);this.b3.b3Body_SetTransform(body,part.position,yawQuat(part.yaw));this.shapes.set(part.id,next);
+    this.partSignatures.set(part.id,JSON.stringify(part));
+  }
+
+  /** Prepare every changed shape before retiring anything. No world step occurs in this transaction. */
+  reconcileParts(parts:PartSource[]){
+    const b=this.b3,nextIds=new Set(parts.filter(p=>p.solid).map(p=>p.id));
+    const staged:{part:PartSource;body:b3BodyId;shape:b3ShapeId;old?:b3ShapeId;created:boolean}[]=[];
+    try{
+      for(const part of parts){
+        if(!part.solid||this.partSignatures.get(part.id)===JSON.stringify(part))continue;
+        const existing=this.partSignatures.has(part.id)?this.bodies.get(part.id):undefined;
+        let body=existing;
+        if(!body){const def=b.b3DefaultBodyDef();def.position=[...part.position];def.rotation=yawQuat(part.yaw);body=b.b3CreateBody(this.world,def);}
+        const def=b.b3DefaultShapeDef();def.updateBodyMass=false;def.baseMaterial.friction=.65;
+        const shape=b.b3CreateBoxShape(body,def,...part.size.map(n=>n/2) as Vec3);
+        staged.push({part,body,shape,old:existing?this.shapes.get(part.id):undefined,created:!existing});
+        if(!b.b3Shape_IsValid(shape))throw new Error('Nie udało się przygotować części formy.');
+      }
+    }catch(error){
+      for(const row of staged)if(row.created)b.b3DestroyBody(row.body);else if(b.b3Shape_IsValid(row.shape))b.b3DestroyShape(row.shape,false);
+      throw error;
+    }
+    for(const id of this.partSignatures.keys())if(!nextIds.has(id)){
+      b.b3DestroyBody(this.bodies.get(id)!);this.bodies.delete(id);this.shapes.delete(id);this.partSignatures.delete(id);
+    }
+    for(const row of staged){
+      if(row.old)b.b3DestroyShape(row.old,false);
+      b.b3Body_SetTransform(row.body,row.part.position,yawQuat(row.part.yaw));
+      this.bodies.set(row.part.id,row.body);this.shapes.set(row.part.id,row.shape);this.partSignatures.set(row.part.id,JSON.stringify(row.part));
+    }
   }
 
   private support(a:Resident,desired:Vec3){
@@ -142,7 +196,7 @@ export class WorldPhysics {
 
   private grips(state:WorldState,dt:number){
     for(const a of state.residents){
-      if(!a.holding)continue;const t=state.things.find(t=>t.id===a.holding);
+      if(!a.holding){this.gripStrain.delete(a.id);continue;}const t=state.things.find(t=>t.id===a.holding);
       const actor=this.bodies.get(a.id),body=t&&this.bodies.get(t.id);if(!t||!actor||!body)continue;
       const point:Vec3=[0,0,0],velocity:Vec3=[0,0,0];
       this.b3.b3Body_GetWorldPoint(point,actor,[0,.22,.62]);this.b3.b3Body_GetWorldPointVelocity(velocity,actor,point);
@@ -157,20 +211,19 @@ export class WorldPhysics {
   }
 
   release(id:string,state:WorldState,detail='Odłożył własną torbę'){
-    const a=state.residents.find(r=>r.id===id),t=state.things.find(t=>t.id===a?.holding);if(!a||!t)return false;
-    a.holding=null;t.heldBy=null;this.gripStrain.delete(id);
-    state.events.push({time:state.seconds,kind:'placed',actor:id,target:t.id,detail});
-    a.memories.push({time:state.seconds,kind:'placed',target:t.id,detail});return true;
+    const a=state.residents.find(r=>r.id===id);if(!a)return false;
+    const action=executeAction(state,id,{kind:'put-down'});if(!action.accepted)return false;
+    this.gripStrain.delete(id);
+    state.events.at(-1)!.detail=detail;a.memories.at(-1)!.detail=detail;return true;
   }
 
   step(dt:number,drives:Map<string,Drive>,state:WorldState){
     if(this.disposed)throw new Error('Zamknięta fizyka');
+    this.reconcileThings(state.things);
     this.sync(state);
     for(const a of state.residents)this.drive(a,drives.get(a.id)??{velocity:[0,0,0],posture:a.posture},dt);
     this.grips(state,dt);this.b3.b3World_Step(this.world,dt,4);this.metrics.steps++;this.sync(state);
-    for(const t of state.things)if(t.consumed&&this.bodies.has(t.id)){
-      this.b3.b3DestroyBody(this.bodies.get(t.id)!);this.bodies.delete(t.id);this.shapes.delete(t.id);
-    }
+    this.reconcileThings(state.things);
   }
 
   sync(state:WorldState){
@@ -181,5 +234,5 @@ export class WorldPhysics {
     }
   }
 
-  dispose(){if(this.disposed)return;this.disposed=true;this.b3.b3DestroyWorld(this.world);for(const m of this.meshes)this.b3.b3DestroyMesh(m);this.bodies.clear();this.shapes.clear();}
+  dispose(){if(this.disposed)return;this.disposed=true;this.b3.b3DestroyWorld(this.world);for(const m of this.meshes)this.b3.b3DestroyMesh(m);this.bodies.clear();this.shapes.clear();this.thingIds.clear();}
 }

@@ -6,7 +6,7 @@ const materials: Record<string, THREE.MeshStandardMaterial> = {};
 function texture(kind: string): THREE.CanvasTexture {
   const canvas = document.createElement('canvas'); canvas.width = canvas.height = 128;
   const context = canvas.getContext('2d')!;
-  const palette: Record<string, string> = { stone: '#a3a092', plaster: '#d6cab0', timber: '#73533b', thatch: '#a69560', cloth: '#81654b', earth: '#877559', water: '#628782' };
+  const palette: Record<string, string> = { stone: '#a3a092', plaster: '#d6cab0', timber: '#73533b', thatch: '#a69560', cloth: '#81654b', earth: '#877559', water: '#628782', leaves: '#56714a' };
   context.fillStyle = palette[kind] ?? '#777777'; context.fillRect(0, 0, 128, 128);
   let seed = 37;
   const rand = () => { seed = Math.imul(seed, 1664525) + 1013904223 | 0; return (seed >>> 0) / 4294967295; };
@@ -34,7 +34,8 @@ function roofGeometry(part: PartSource): THREE.BufferGeometry {
 export function createPart(part: PartSource): THREE.Group {
   const group = new THREE.Group(); group.position.fromArray(part.position); group.rotation.y = part.yaw;
   group.userData = { id: part.id, kind: 'part', signature: JSON.stringify(part) };
-  const mesh = new THREE.Mesh(part.role === 'roof' ? roofGeometry(part) : new THREE.BoxGeometry(...part.size), material(part.material)); mesh.castShadow = mesh.receiveShadow = true; group.add(mesh);
+  const geometry=part.material==='leaves'?new THREE.SphereGeometry(1,10,8):part.role==='roof'?roofGeometry(part):new THREE.BoxGeometry(...part.size);
+  const mesh=new THREE.Mesh(geometry,material(part.material));if(part.material==='leaves')mesh.scale.set(part.size[0]/2,part.size[1]/2,part.size[2]/2); mesh.castShadow = mesh.receiveShadow = true; group.add(mesh);
   // Timber framing is visible structure attached to this source wall, not a second editable wall.
   if (part.role === 'wall' && part.material === 'plaster') {
     const [x, y, z] = part.size, front = z < x;
@@ -65,7 +66,7 @@ function limb(length: number, radius: number, color: string): THREE.Group {
 export function createHuman(resident: Resident, index: number): HumanRig {
   const group = new THREE.Group(), pelvis = new THREE.Group(), torso = new THREE.Group(); group.add(pelvis); pelvis.add(torso);
   group.userData = { id: resident.id, kind: 'resident' };
-  const shirt = index % 2 ? '#9d684e' : '#65745b', trouser = '#4b493f', skin = index % 2 ? '#cda07c' : '#d7b38a';
+  const shirt = resident.control==='player'?'#536d75':index % 2 ? '#9d684e' : '#65745b', trouser = '#4b493f', skin = index % 2 ? '#cda07c' : '#d7b38a';
   const body = box(.42, .55, .25, shirt); body.position.y = .28; torso.add(body);
   const skirt = new THREE.Mesh(new THREE.CylinderGeometry(.23, .29, .32, 8), new THREE.MeshStandardMaterial({ color: shirt, roughness: 1 })); skirt.position.y = .02; skirt.castShadow = true; torso.add(skirt);
   const belt = box(.44, .055, .27, '#624932'); belt.position.y = .08; torso.add(belt);
@@ -95,7 +96,7 @@ export function createThing(thing: Thing): THREE.Group {
     for (const x of [-.3, .3]) { const strap = box(.045, thing.size[1] * .95, .02, '#513c29'); strap.position.set(thing.size[0] * x, 0, thing.size[2] / 2 + .022); group.add(strap); }
     const handle = new THREE.Mesh(new THREE.TorusGeometry(thing.size[0] * .22, .022, 4, 10, Math.PI), new THREE.MeshStandardMaterial({ color: '#493827' })); handle.position.y = thing.size[1] / 2; group.add(handle);
   } else if (thing.kind === 'food') {
-    const loaf = new THREE.Mesh(new THREE.SphereGeometry(1, 10, 7), new THREE.MeshStandardMaterial({ color: '#b69159', roughness: 1 })); loaf.scale.set(thing.size[0] / 2, thing.size[1] / 2, thing.size[2] / 2); loaf.castShadow = true; group.add(loaf);
+    const loaf = new THREE.Mesh(new THREE.SphereGeometry(1, 10, 7), new THREE.MeshStandardMaterial({ color: thing.foodFlavor==='apple'?'#a96037':thing.foodFlavor==='berries'?'#544252':'#b69159', roughness: 1 })); loaf.scale.set(thing.size[0] / 2, thing.size[1] / 2, thing.size[2] / 2); loaf.castShadow = true; group.add(loaf);
   } else group.add(box(...thing.size, '#8b6847'));
   return group;
 }

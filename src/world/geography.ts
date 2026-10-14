@@ -1,7 +1,7 @@
 import type { Channel, Vec3 } from './types';
 
 export const REGION_SEED = 130626;
-export const TERRAIN_VERSION = 'jaworowa-drainage-1';
+export const TERRAIN_VERSION = 'jaworowa-drainage-2';
 /** Hand-authored watershed. Branches end at exactly the main channel's confluences.
  * Y is water elevation; the northern and southern ends continue beyond prepared land. */
 const DRAINAGE: Channel[] = [
@@ -11,6 +11,8 @@ const DRAINAGE: Channel[] = [
   { id: 'brook-southwest', width: 4, points: [[-2750, 205, 500], [-2180, 151, 650], [-1570, 93, 930], [-650, 28, 1200]] },
 ];
 export function createChannels(): Channel[] { return DRAINAGE.map(c => ({ ...c, points: c.points.map(p => [...p] as Vec3) })); }
+/** Stable recipe comparison, independent of JSON property or channel ordering. */
+export function channelRecipe(channels:Channel[]):string{return JSON.stringify([...channels].sort((a,b)=>a.id.localeCompare(b.id)).map(c=>[c.id,c.width,c.points]));}
 export function hash(x: number, z: number, salt = 0): number {
   let h = Math.imul(x | 0, 374761393) ^ Math.imul(z | 0, 668265263) ^ REGION_SEED ^ salt;
   h = Math.imul(h ^ h >>> 13, 1274126177); return ((h ^ h >>> 16) >>> 0) / 4294967295;
@@ -42,15 +44,42 @@ function naturalHeightAt(x: number, z: number): number {
   return d.water - 1.25 + bank + valley + (ridge + detail) * reliefWeight;
 }
 const TERRACE_GRADE = naturalHeightAt(0, 0);
-export function heightAt(x: number, z: number): number {
+export function legacyHeightAt(x: number, z: number): number {
   // Explicit authored house terrace; its boundary blends into the existing hillside.
   const distance = Math.max(Math.abs(x) / 12, Math.abs(z - 1) / 13);
   const blend = smooth(Math.max(0, Math.min(1, distance - 1)));
   return TERRACE_GRADE * (1 - blend) + naturalHeightAt(x, z) * blend;
 }
+/** Every reach contributes a continuous valley; a compact smooth minimum joins
+ * watersheds without switching the entire relief to another water elevation.
+ * The broad shoulder keeps rising: a bounded valley profile lets a remote low
+ * outlet undercut a higher upstream bed even several kilometres away. */
+function continuousNaturalHeightAt(x: number, z: number): number {
+  const ridge = 75 * noise(x, z, 1100, 11) + 45 * noise(x, z, 450, 12);
+  const detail = (noise(x, z, 75, 13) - .5) * 12 + (noise(x, z, 18, 14) - .5) * 2;
+  let elevation = Infinity;
+  for (const channel of DRAINAGE) for (let i = 1; i < channel.points.length; i++) {
+    const a = channel.points[i - 1], b = channel.points[i], dx = b[0] - a[0], dz = b[2] - a[2];
+    const t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (z - a[2]) * dz) / (dx * dx + dz * dz)));
+    const beyond = Math.max(0, Math.hypot(x - a[0] - dx * t, z - a[2] - dz * t) - channel.width * .5);
+    const candidate = a[1] + (b[1] - a[1]) * t - 1.25
+      + 1.8 * (1 - Math.exp(-beyond / 3.5))
+      + 140 * (1 - Math.exp(-Math.pow(beyond / 440, 1.5)))
+      + .03 * beyond
+      + (ridge + detail) * smooth(Math.min(1, beyond / 120));
+    const join = Math.max(0, 1 - Math.abs(elevation - candidate) / 3);
+    elevation = Math.min(elevation, candidate) - join * join * .75;
+  }
+  return elevation;
+}
+export function heightAt(x: number, z: number): number {
+  const distance = Math.max(Math.abs(x) / 12, Math.abs(z - 1) / 13);
+  const blend = smooth(Math.max(0, Math.min(1, distance - 1)));
+  return TERRACE_GRADE * (1 - blend) + continuousNaturalHeightAt(x, z) * blend;
+}
 export type Habitat = 'riverbank' | 'meadow' | 'woodland' | 'heath' | 'rock';
-export function ecologyAt(x: number, z: number): { habitat: Habitat; density: number; moisture: number; path: number } {
-  const d = drainageAt(x, z), y = heightAt(x, z), patch = noise(x, z, 280, 17);
+export function ecologyAt(x: number, z: number, elevation=heightAt(x,z)): { habitat: Habitat; density: number; moisture: number; path: number } {
+  const d = drainageAt(x, z), y = elevation, patch = noise(x, z, 280, 17);
   const path = Math.exp(-Math.pow((x + 9 + 13 * Math.sin(z / 72)) / 2.2, 2)) * (Math.abs(z) < 240 ? 1 : 0);
   const clearing = Math.exp(-(x * x / 2300 + z * z / 4600));
   const moisture = Math.exp(-d.distance / 140);

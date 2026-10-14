@@ -2,7 +2,9 @@
 
 13.10.2026 · fundament roboczy · implementacja rozpoczęta po jawnej zgodzie Ownera
 
-**Aktualizacja po pierwszym graniu:** dalsza implementacja jest ponownie wstrzymana na polecenie Ownera. Poniższy tekst zachowuje roboczą hipotezę pierwszej budowy; jej braki oceniamy w [BUILD-01.md](BUILD-01.md#ocena-po-pierwszym-graniu). Gracz ma być pełnoprawnym aktorem świata. Wspólne wykonanie czynności, formy powiązane z używaniem, spójna reprezentacja terenu i podtrzymujące się możliwości życia wymagają dopracowania przed wznowieniem kodu.
+**Aktualizacja 14.10.2026:** Owner zakończył postój i zatwierdził wznowienie implementacji oraz przebudowy. Poniższy tekst zachowuje kontekst pierwszej hipotezy, nie aktualną listę chronionych rozwiązań. [BUILD-02.md](BUILD-02.md) opisuje rzeczywistą drugą kampanię: postać gracza, formy i własne użycia, materialne próby, podłoże oraz dalsze miejscowe możliwości życia.
+
+Zapis drugiej budowy ma schemat 2: źródłami są lokalne formy i swobodne miejsca; płaskie części, miejsca oraz pozycje zasobów odbudowujemy jako projekcje. Historia autora dotyczy wskazanego zakresu, nie całego życia. Dawny schemat 1 i podłoże mają jawną migrację tej samej historii. Obecny wykonawca ma budżet triangulacji; to granica kosztu tej implementacji, nie ostateczny rozmiar świata.
 
 **Decyzja Ownera o braku immunitetu:** wszystkie opisane tutaj techniki oraz zalecenia zachowania są odwoływalnymi hipotezami, również podział stanu, model tożsamości, czas, solver i kontroler. [AGENTS.md](../AGENTS.md) ma pierwszeństwo przed dawnym planem; [aktualny osąd](BUILD-01.md#osąd-po-decyzji-ownera-i-ponownym-odczycie-donorów) nie ratyfikuje fundamentu.
 
@@ -83,4 +85,4 @@ Pierwszy **wynik do oceny** obejmuje łącznie:
 
 Te zachowania kwalifikujemy **podczas budowy**, przed uznaniem wspólnego wyniku za przyjęty. Brak kontaktowej wzajemności zatrzymuje dokładanie czynności, lecz nie musi zatrzymać komponowania i oglądu tej samej krainy. Drobną próbę diagnostyczną kończymy wyjaśnieniem konkretnej przyczyny.
 
-Zgoda na implementację została udzielona 13.10.2026. Powstał pierwszy wspólny runtime tej krainy; bieżące wykonanie i granice zapisujemy w [BUILD-01.md](BUILD-01.md). Podczas budowy pierwsza hipoteza otrzymała skończony napęd wirtualnych nóg, native ciała i wzajemny podatny chwyt torby. Niska postura odpoczynku jest podpartym uproszczeniem; nie kwalifikuje jeszcze siadu na ławie. Pierwsza ocena doświadczenia ujawniła istotne braki; obowiązuje późniejsze wstrzymanie implementacji opisane na początku dokumentu oraz w AGENTS.md.
+Zgoda na implementację została udzielona 13.10.2026. Powstał pierwszy wspólny runtime tej krainy; bieżące wykonanie i granice zapisujemy w [BUILD-01.md](BUILD-01.md). Podczas budowy pierwsza hipoteza otrzymała skończony napęd wirtualnych nóg, native ciała i wzajemny podatny chwyt torby. Niska postura odpoczynku jest podpartym uproszczeniem; nie kwalifikuje jeszcze siadu na ławie. Pierwsza ocena doświadczenia ujawniła istotne braki; późniejszy postój zakończyła jawna zgoda Ownera z 14.10.2026, opisana na początku dokumentu i w AGENTS.md. Dalsze wykonanie jest w BUILD-02.md.

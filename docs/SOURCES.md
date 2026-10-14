@@ -73,3 +73,12 @@ W tej ścieżce wykonywane jest `vision.observe(frame)`, ale `occupant.decide(fr
 Wcześniejsze rozpoznanie portfolio obejmowało także własne formy, source/revision, lokalne dirty regions i ciągłość tożsamości. Nie przenosimy automatycznie ich siatek, tokenów runtime'u lub historii klonowanych całych scen do wielkiej Krainy. Konkretny transfer będzie opisany przy kodzie, gdy zacznie wykonywać potrzebną kompetencję.
 
 Powyższe źródła służą decyzjom. Nie zaimportowano ich kodu, assetów, zależności lub dawnych testów do MiniFeniksa.
+
+
+## Rzeczywisty transfer w drugiej budowie — 14.10.2026
+
+`world/forms.ts` odzyskuje z JURE przeliczanie względem gospodarza, a `world/authoring.ts` i widok — rozdzielenie podglądu, anulowania i przyjęcia znane z HomeScan. To własne wykonanie tych zasad: forma posiada części oraz użycia, a scoped historia ponownie sprawdza żywą zajętość. Nie przeniesiono historii całej sceny, resetującej przeżyte skutki. Przykład: poznana nowa ława może zostać cofnięta, lecz jej tożsamości pozostają wycofane, a prywatne świadectwa nadal dają się odczytać.
+
+`actors/actions.ts` rozdziela materialną próbę od samego wyboru braina, rozwijając naukę z Llm-Live-NPC. W tym przyroście nie przeniesiono modelu posiadania 2D ani nie podłączono usług modeli. Lokalna obserwacja ma rzeczywisty wpływ na zbiór, odpoczynek i rozpoznawanie brakującej przeszkody. Nowa porcja wchodzi do tego samego solvera, a zapis zachowuje jej zużycie.
+
+Napęd nadal jest własnym ograniczonym rozwiązaniem native, nie odziedziczoną kwalifikacją V1. Blur zwalnia żądanie ruchu; ciało hamuje skończoną siłą. Ocenę tego zachowania i odczucia trzeba przeprowadzić w grze. Trwającego świata nie resetuje stop/start, podgląd autora lub cofnięcie formy.

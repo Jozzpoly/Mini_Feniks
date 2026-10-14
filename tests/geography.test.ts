@@ -14,7 +14,7 @@ describe('authored geography', () => {
       for (const [x, y, z] of channel.points) expect(heightAt(x, z)).toBeLessThan(y);
     }
   });
-  it('resolves the rendered stream bed below water along distant narrow channels', () => {
+  it('keeps rendered upstream beds near their water instead of carving from remote outlets', () => {
     const source = createRegion(), terrain = createTerrain(source);
     terrain.updateMatrixWorld(true);
     const ray = new THREE.Raycaster();
@@ -24,6 +24,7 @@ describe('authored geography', () => {
       const hit = ray.intersectObject(terrain)[0];
       expect(hit, `${channel.id} reach ${i}`).toBeDefined();
       expect(hit.point.y, `${channel.id} reach ${i}`).toBeLessThan(water);
+      expect(hit.point.y, `${channel.id} reach ${i}`).toBeGreaterThan(water - 6);
     }
     terrain.geometry.dispose(); (terrain.material as THREE.Material).dispose();
   });
@@ -56,4 +57,9 @@ describe('authored geography', () => {
     expect(habitats.size).toBeGreaterThanOrEqual(4);
     expect(new Set(createRegion().home.parts.map(p => p.id)).size).toBe(createRegion().home.parts.length);
   });
+});
+
+it('keeps the witnessed watershed divide continuous', () => {
+  const x = -26.4470043033;
+  expect(Math.abs(heightAt(x-.001, 0)-heightAt(x+.001, 0))).toBeLessThan(.01);
 });

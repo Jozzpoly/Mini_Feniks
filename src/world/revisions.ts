@@ -1,4 +1,5 @@
 import type { PartSource, RevisionResult, Vec3, WorldState } from './types';
+import { formForPart, resolveFormTransform, syncFormProjection } from './forms';
 
 interface Bounds { min: Vec3; max: Vec3; }
 const vector = (v: unknown): v is Vec3 => Array.isArray(v) && v.length === 3 && v.every(n => typeof n === 'number' && Number.isFinite(n));
@@ -51,6 +52,14 @@ export function revisePart(state: WorldState, partId: string,
   const after = structuredClone(candidate);
   const revision = state.source.revision + 1;
   state.source.home.parts[index] = after;
+  const form=formForPart(state.source,partId);
+  if(form){
+    const origin=resolveFormTransform(state.source,form.id),c=Math.cos(origin.yaw),s=Math.sin(origin.yaw);
+    const dx=after.position[0]-origin.position[0],dz=after.position[2]-origin.position[2];
+    const local=form.parts.find(p=>p.id===partId)!;
+    Object.assign(local,after,{position:[c*dx-s*dz,after.position[1]-origin.position[1],s*dx+c*dz],yaw:after.yaw-origin.yaw});
+    syncFormProjection(state.source);
+  }
   state.source.revision = revision;
   state.revisions.push({ revision, time: state.seconds, partId, before: structuredClone(before), after: structuredClone(after) });
   return { accepted: true, reason: 'Przyjęto miejscową poprawkę.', partId };
