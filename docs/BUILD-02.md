@@ -59,7 +59,7 @@ Pliki: `src/ui/*`, `src/view/index.ts`, `src/view/objects.ts`, `src/main.ts`; pr
 - [x] RED: wejście / wyjście z tworzenia ma czytelny czas; formularz lub utrata fokusu nie zostawiają biegnącej postaci. Cofnięcie i anulowanie nie są restartem.
 - [x] Połączyć postać, kamerę i bezpośredni edytor; wyraźny wybór, podgląd oraz lokalne liczby. Poprawić bliski ogląd i czytelność materialnych następstw.
 - [x] Wykonać końcowy build i niezależny przegląd zmiany.
-- [ ] Dostarczyć tę samą prywatną grę; zachować publiczny kod i aktualny stan pracy.
+- [x] Dostarczyć tę samą prywatną grę; zachować publiczny kod i aktualny stan pracy.
 
 ## Sprawdziany przekrojowe
 
@@ -88,3 +88,12 @@ Niezależny przegląd zakresu pierwszego commita tej kampanii potwierdził trzy 
 Projekcja krajobrazu przygotowuje nowe reprezentacje, wymienia je po zmianie zaakceptowanej reguły i zwalnia poprzednie zasoby. Zwykła zmiana formy lub liczby owoców nie przebudowuje ziemi. Drzewa i woda są ograniczone do przygotowanego zakresu. Niewspierana zmiana definicji cieków jest odrzucana przed podmianą historii; rozszerzenie zasięgu pozostaje możliwe w granicach obecnego wykonawcy.
 
 **Końcowe sprawdzenie kodu: 134/134 testów, 18 plików; produkcyjny build zakończony.** Bundle JS ma około 1,80 MB / 0,54 MB gzip, dlatego przygotowanie i płynność rzeczywistego klienta nadal wymagają oglądu. Weryfikacja krajobrazu sprawdza prawdziwą geometrię Three.js, raycast, wspólne tablice i zwalnianie instancji; nie jest przeglądarkowym renderingiem.
+
+
+## Dostarczenie i wznowienie
+
+Publikacja 14.10.2026 zakończyła się `succeeded` pod dotychczasowym prywatnym adresem. Źródło gry: `5aa4c5306d253bea4499f5f5b5c087d760631e84`; publiczny commit kodu: `a3c9e4e134603a8ce2a429d1160a4a0e843c0790`. Obydwa miały to samo sprawdzone drzewo `de9e736ee9f0fd68cc05d32855b1b9f6cfb55851`. Zapisana wersja: `appgprj_6ace6975dd608191b9d7754d7c18b6a7~appgver_a1cbd521503c81918d37368a476f4fc3`.
+
+Po publikacji otwarto rzeczywistą grę w Operze. Odczyt pokazał nowy interfejs, postać gracza i zegar; screenshot potwierdził render 3D z domem, postacią i HUD-em. To pierwszy ogląd wdrożenia, nie próba wszystkich uchwytów, pomiar FPS, test mobilny lub Owner PASS. Klient nadal wymaga rzeczywistego grania i krytyki jakości.
+
+Kontynuacja ma zaczynać od tej działającej całości i aktualnego feedbacku. Nie powtarzać całego audytu ani odtwarzać skończonego zbioru. Najbliższy osąd dotyczy odczucia chodu/interakcji, kosztu swobodnego tworzenia oraz bogactwa lokalnego środowiska i własnych spraw mieszkańców. Obecny sześcioczęściowy zestaw form, proste potrzeby i wizualny las nie są docelowym poziomem Krainy. Nadrzędny brak immunitetu wszystkich fundamentów pozostaje w mocy.
