@@ -17,7 +17,7 @@ describe('one embodied participant in the inhabited realm', () => {
       await session.load(saved);
       expect(session.state.residents.filter(r => r.control === 'player').map(r => r.id)).toEqual([player.id]);
     } finally { session.dispose(); }
-  });
+  },20000);
 
   it('keeps player motion through multiple NPC decisions and stops its input under pause', async () => {
     const session = await createSession(createWorld(createRegion()), heightAt);

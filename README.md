@@ -16,6 +16,8 @@ MiniFeniks czerpie z szerokiej wizji Feniksa. Jeśli po dłuższym tworzeniu, te
 
 **Graj**: WASD lub strzałki względem kamery, E — najbliższa dostępna czynność, C — niska postura. Mysz prowadzi kamerę. **Oglądaj** pozwala obserwować ludzi i krainę. **Twórz** zatrzymuje czas, pozwala manipulować całymi formami uchwytami i dodawać ławy, stoły, ściany, podesty, bramy oraz skały. Podgląd nie zmienia materialnego świata przed przyjęciem. Wyjście przywraca wcześniejszy stan zegara.
 
+Pierwszy gameplay potwierdził udział gracza i ujawnił błędy kamery. Oko otrzymało prześwit nad rzeczywistym terenem; przy bliskim oglądzie postaci przesłaniające części domu pokazują przekrój. Twórz przywraca pełny widok geometrii. Te poprawki nie zmieniają kolizji, historii ani kierunku WASD; jakość całego doświadczenia pozostaje do dalszej pracy.
+
 - [Fundament i pierwszy ruch](docs/FOUNDATION.md): decyzje robocze, możliwość rozbudowy świata, granice dowodów oraz pierwszy przyrost do oceny.
 - [Źródła i nauka z donorów](docs/SOURCES.md): przypięte źródła projektów i zakres ich przydatności.
 - [Instrukcje prowadzenia pracy](AGENTS.md): ciągłość, autoryzacja i uczciwa ocena rezultatów.

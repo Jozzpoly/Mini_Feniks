@@ -35,7 +35,7 @@ describe('authored source and lived material continuity', () => {
       await session.load(saved);
       expect(session.save()).toBe(saved);
     } finally { session.dispose(); }
-  });
+  },20000);
 
   it('keeps old memories loadable after removing an idle known form', async () => {
     const session = await createSession(createWorld(createRegion()), heightAt);

@@ -11,7 +11,7 @@ async function start(){
   // Let the loading view paint before compiling the shared physical terrain.
   await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())));
   const state=readStartingWorld(localStorage),session=await createSession(state,heightAt);
-  const view=createView(root.querySelector<HTMLElement>('#land')!,session.state.source);
+  const view=createView(root.querySelector<HTMLElement>('#land')!,session.state.source,(x,z)=>session.physics.terrainHeightAt(x,z));
   view.update(session.state);
   const ui=createInterface(root.querySelector<HTMLElement>('#interface')!,session,view);
   root.querySelector('.loading')?.remove();

@@ -86,7 +86,7 @@ export function createInterface(container:HTMLElement,session:Session,view:World
   };
   const updatePeople=()=>{
     query('.people').innerHTML=session.state.residents.map(r=>`<button data-person="${escape(r.id)}" class="${selectedThing===null&&r.id===selected?'active':''}">${escape(r.name)}${r.control==='player'?'<span>Ty</span>':''}</button>`).join('');
-    query('.people').querySelectorAll<HTMLButtonElement>('[data-person]').forEach(b=>b.onclick=()=>{selected=b.dataset.person!;selectedThing=null;if(mode==='author')changeMode('observe');updatePeople();update(true);const r=session.state.residents.find(r=>r.id===selected);if(r){if(mode==='play'&&r.id!==session.player.id)changeMode('observe');view.focus(r.position,9);}});
+    query('.people').querySelectorAll<HTMLButtonElement>('[data-person]').forEach(b=>b.onclick=()=>{selected=b.dataset.person!;selectedThing=null;if(mode==='author')changeMode('observe');updatePeople();update(true);const r=session.state.residents.find(r=>r.id===selected);if(r){if(mode==='play'&&r.id!==session.player.id)changeMode('observe');view.focus(r.position,9,r.id);}});
   };
   const candidates=():Array<{action:ActorAction;label:string;distance:number}>=>{
     const p=session.player,near=(v:Vec3)=>Math.hypot(p.position[0]-v[0],p.position[1]-v[1],p.position[2]-v[2]),found:Array<{action:ActorAction;label:string;distance:number}>=[];
@@ -124,11 +124,11 @@ export function createInterface(container:HTMLElement,session:Session,view:World
     if(thing){
       const holder=session.state.residents.find(r=>r.id===thing.heldBy);
       query('.person-details').innerHTML=`<div class="person-head"><h2>${escape(thing.label)}</h2><button data-action="near">Przybliż</button></div><p class="own-reason">${thing.consumed?'Zużyta porcja.':holder?`Przenosi: ${escape(holder.name)}.`:'Spoczywa lub porusza się w krainie.'}</p><dl class="thing-properties"><dt>Masa</dt><dd>${thing.mass.toFixed(2)} kg</dd><dt>Wymiary</dt><dd>${thing.size.map(v=>v.toFixed(2)).join(' × ')} m</dd><dt>Położenie</dt><dd>${thing.position.map(v=>v.toFixed(2)).join(' · ')} m</dd></dl>`;
-      button('near').onclick=()=>view.focus(thing.position,5);return;
+      button('near').onclick=()=>{if(mode==='play')changeMode('observe');view.focus(thing.position,5,thing.id);};return;
     }
     selectedThing=null;const resident=session.state.residents.find(r=>r.id===selected)??player;
     query('.person-details').innerHTML=`<div class="person-head"><h2>${escape(resident.name)}</h2><button data-action="near">Przybliż</button></div><p class="own-reason">${escape(resident.intent.reason)}</p><div class="need"><span>Zmęczenie</span><div><i style="width:${resident.fatigue*100}%"></i></div></div><div class="need"><span>Głód</span><div><i style="width:${resident.hunger*100}%"></i></div></div><h3>Pamięta</h3><ol class="memory">${resident.memories.slice(-4).reverse().map(m=>`<li>${escape(m.detail)}</li>`).join('')||'<li>Własne miejsca i wcześniejsza droga.</li>'}</ol>`;
-    button('near').onclick=()=>view.focus(resident.position,7);
+    button('near').onclick=()=>{if(mode==='play'&&resident.id!==session.player.id)changeMode('observe');view.focus(resident.position,7,resident.id);};
   };
   for(const m of modes)button(m).onclick=()=>changeMode(m);
   button('home').onclick=()=>{changeMode('observe');view.focus(session.state.source.home.position,35);};

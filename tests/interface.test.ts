@@ -21,6 +21,15 @@ async function setup(initialise?:(state:WorldState)=>void){
  return {session,ui,dom,view,gesture:(pose:AuthorPose)=>{if(!gestureCallback)throw new Error('No gesture consumer');gestureCallback(pose);}};
 }
 describe('usable world interface',()=>{
+ it('near on a selected thing switches to observation and identifies the camera subject',async()=>{
+  const {session,ui,dom,view}=await setup(),bag=session.state.things.find(t=>t.kind==='bag')!,modes:string[]=[],focus=vi.fn();view.focus=focus;view.setMode=(mode)=>{modes.push(mode);};
+  try {
+   view.pick=()=>({kind:'thing',id:bag.id,position:bag.position});
+   for(const type of ['pointerdown','pointerup'])view.renderer.domElement.dispatchEvent(new dom.window.MouseEvent(type,{button:0,clientX:4,clientY:4}));
+   document.querySelector<HTMLButtonElement>('[data-action="near"]')!.click();
+   expect(modes.at(-1)).toBe('observe');expect(focus).toHaveBeenLastCalledWith(bag.position,5,bag.id);
+  }finally{ui.dispose();session.dispose();dom.window.close();}
+ });
  it('pause stops actual life and the person inspector shows their own reason',async()=>{
   const {session,ui,dom}=await setup();
   const before=session.state.seconds;

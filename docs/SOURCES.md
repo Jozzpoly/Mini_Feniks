@@ -82,3 +82,9 @@ Powyższe źródła służą decyzjom. Nie zaimportowano ich kodu, assetów, zal
 `actors/actions.ts` rozdziela materialną próbę od samego wyboru braina, rozwijając naukę z Llm-Live-NPC. W tym przyroście nie przeniesiono modelu posiadania 2D ani nie podłączono usług modeli. Lokalna obserwacja ma rzeczywisty wpływ na zbiór, odpoczynek i rozpoznawanie brakującej przeszkody. Nowa porcja wchodzi do tego samego solvera, a zapis zachowuje jej zużycie.
 
 Napęd nadal jest własnym ograniczonym rozwiązaniem native, nie odziedziczoną kwalifikacją V1. Blur zwalnia żądanie ruchu; ciało hamuje skończoną siłą. Ocenę tego zachowania i odczucia trzeba przeprowadzić w grze. Trwającego świata nie resetuje stop/start, podgląd autora lub cofnięcie formy.
+
+## Kamera po pierwszym gameplayu drugiej budowy
+
+Odczytano pełne rzeczywiste wykonania: [Character `follow-camera.js`, e7a98be](https://github.com/Jozzpoly/Box3d-Character-Controler/blob/e7a98beaca4c010e056c31db97b33c05b4610e38/src/follow-camera.js), [JV `m6-chase-camera.ts`, 5c3830c](https://github.com/Jozzpoly/JV-Box3D-Web-experiment/blob/5c3830c01d58e42fb9b3705ff9948bdbe6071659/src/render/m6-chase-camera.ts) i [FrameMatter `camera_rig.gd`, 51552d3](https://github.com/Jozzpoly/FrameMatter-Lab/blob/51552d33cf3bbf62dea266c34448b496084c9a64/p1/camera_rig.gd).
+
+Pierwsze dwa wyznaczają lub wygładzają położenie bez kontroli przecięcia terenu. FrameMatter rzeczywiście wykonuje sphere-probe i oddziela automatyczną prezentację od yaw sterowania. Odzyskano tę granicę odpowiedzialności: pionowa ochrona oka nie obraca WASD, a prezentacja nie przesuwa ciała. MiniFeniks ma własne sprawdzenie triangulowanego native terenu i ograniczony przekrój części; nie skopiowano całego riggu, nie wykonano teraz prób donorów i nie odziedziczono ich kwalifikacji.

@@ -66,6 +66,14 @@ export class WorldPhysics {
     return hit.hit?hit.point[1]:null;
   }
 
+  /** Presentation probes the installed terrain body, never a roof or nearby prop. */
+  terrainHeightAt(x:number,z:number):number|null{
+    const body=this.bodies.get('terrain');if(!body||!Number.isFinite(x)||!Number.isFinite(z))return null;
+    const origin=this.ground(x,z)+100,query=this.b3.b3DefaultQueryFilter();
+    const hit=this.b3.b3Body_CastRay(body,[x,origin,z],[0,-200,0],query,1,{position:[0,0,0],quaternion:[0,0,0,1]});
+    return hit.hit?hit.point[1]:null;
+  }
+
   private installPart(part:PartSource){
     const d=this.b3.b3DefaultBodyDef();d.position=[...part.position];d.rotation=yawQuat(part.yaw);
     const body=this.b3.b3CreateBody(this.world,d),s=this.b3.b3DefaultShapeDef();s.baseMaterial.friction=.65;
