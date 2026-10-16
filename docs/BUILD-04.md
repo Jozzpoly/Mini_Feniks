@@ -38,4 +38,19 @@ Nie rozszerzono drugiego Studia, nie zintegrowano importerów, LLM/API, uniwersa
 
 ## Końcowe wykonanie
 
-Pełne testy, kontrola TypeScript i niezależny przegląd zostały wykonane. Publikacja oraz próba nowej wersji w Operze są kolejnymi krokami; ich wyniku nie wyprzedzamy. Techniczne PASS-y nie zastępują grania Ownera.
+**Dostarczone do oceny:** produkcyjny build TypeScript/Vite zakończył się poprawnie; końcowa korekta typu celu `quiet` nie zmienia zachowania. Pełne 181 testów oraz przegląd opisano powyżej. Kod gry opublikowano pod dotychczasowym prywatnym adresem (bez zmiany odbiorców):
+
+- źródło Sites `322d8d951e087558c63817b01c3e738d7d451400`;
+- publiczny GitHub `698a0b9402410c78c7c38486215a6c1ec470f7f3`;
+- identyczne drzewo `54101d89b84e2b7b35f40aa31639e9aa0e7947ce`;
+- udane wdrożenie `appgdep_6ad2392b231c8191a671b24a69a5cbcd`.
+
+**Próba w Operze na tej wersji:** rzeczywisty obraz GPU, kamera/obserwacja Miry i wykonana sprawa zapasu; przełączenia Graj/Twórz/Oglądaj; widoczny upływ i zatrzymanie czasu; zmiana położenia rośliny przez istniejący interfejs; rozpoczęcie, zapis oraz odczyt częściowo ukończonego zbioru (2,0 s → 1,5 s po wznowieniu); Esc i nowa próba; realna trzymana porcja, R/T oraz przyciski chwytu, puszczenie, odrębne przyciski podniesienia i jedzenia, przerwanie jedzenia i późniejsze ukończenie. Przywrócono pierwotne położenie rośliny przez zwykłą zmianę autora; przeżytych skutków nie cofnięto. To była kontrolowana próba R&D, nie kwalifikacja swobodnego spaceru.
+
+Po przygotowaniu „Śladu gry” interfejs prawidłowo zgłosił wyciąg do pobrania, lecz oczekiwanie na potwierdzenie pobranego pliku zakończyło się utratą połączenia narzędzia. Pobrania nie uznajemy za potwierdzone. Log konsoli nie pokazał błędu wykonania; pokazał ostrzeżenie Three.js o przestarzałym PCFSoftShadowMap.
+
+Nie potwierdzono FPS, układu mobilnego ani długiego chodu w tym browserze: krótkie zdarzenia klawiatury automatyzacji nie ustanowiły ciągłego napędu. Postura C działała; sterowanie oraz przejścia mają odrębne testy native/JSDOM. Zrzut i poprawny build nie zastępują doświadczenia Ownera.
+
+Końcowa obserwacja sześciu minut przy obu pozycjach startowych wykazała wykonany zapas obu mieszkańców i późniejszą ciszę; po pięciu odłożeniach nie produkowali nieskończonego ruchu dla aktywności. Nie jest to jeszcze dowód bogatego życia: po spełnieniu potrzeb i tej jednej sprawy mają mało sensownych możliwości. Następna kampania powinna otworzyć trwałe używanie/przekształcanie rzeczy oraz bogatsze powody działania, razem z jakością ruchu, wyglądu i odkrywania. Nie dokładamy samych nazw zamiarów lub sztucznej kolejki zajęć. Żaden obecny mechanizm nie otrzymuje immunitetu.
+
+Powyższe piny wskazują pierwszy opublikowany przyrost kodu gry. Dokument domknięcia kampanii jest zapisywany późniejszym commitem; nie zmienia tego kodu.
