@@ -2,6 +2,34 @@
 
 13.10.2026 · fundament roboczy · implementacja rozpoczęta po jawnej zgodzie Ownera
 
+## Ponowne otwarcie modelu świata — 16.10.2026
+
+**Bezpośrednia korekta Ownera:** Feniks Studio służy autorskiemu tworzeniu mapy; MiniFeniks potrzebuje materialnej zmienności dostępnej wszystkim aktorom, również graczowi. Ścinka, budowanie i pozyskiwanie materiałów wyznaczają przyszłe możliwości, nie bieżącą listę mechanik. Obecnie badamy fundamenty bez implementacji. Otwarty pozostaje rodzaj świata, jego reprezentacje, silnik i podział odpowiedzialności. Poniższy dawny fundament jest historią hipotezy.
+
+Najważniejszy brak obecnego wykonania: większość lasu powstaje tylko w rendererze, ziemia jest niezmienną kompilacją funkcji wysokości, a części mają wąski opis `size/yaw/material/role/solid`. Dla dachu obraz jest klinem, lecz collider i promień czynności testują pełne pudełko. Formularz źródła, materialny stan, kontakt i wygląd muszą dojrzeć razem; więcej gotowych czynności tego nie rozwiązuje. Odsłanianie edytowanej ławy naprawia konkretną regresję, nie kwalifikuje tego modelu świata.
+
+### Co wybieramy, zanim utrwalimy technikę
+
+- **Jednostka materialnej zmiany:** całe rzeczy, części, lokalnie odcinane objętości czy kilka skal. Samo pozyskanie drewna nie wymaga voxelowej ziemi. Swobodne drążenie gruntu stawia znacznie inne wymagania; Owner nie zamówił teraz kopania tuneli.
+- **Relacje i zachowanie tożsamości:** belka dotykająca kamienia nie jest z nim automatycznie zespawana. Materiał, sztywne połączenie, podparcie pod ciężarem i trwałe odniesienie to różne znaczenia. Indywidualne ID każdej próbki materii nie jest założonym wymogiem całej krainy.
+- **Projekt autora a przeżyty świat:** definicja/rewizja ze Studio i obecny stan jej instancji muszą być rozróżnialne. Zmiana modelu drzewa nie może po cichu odtworzyć ściętej sztuki lub wymazać pozostawionego drewna. Widok, collider, wiedza i zapis wymagają spójnego rozliczenia tej samej przyjętej zmiany.
+
+### Nadal wiarygodne drogi — bez zwycięzcy
+
+| Kandydat | Mocna strona | Granica do rozstrzygnięcia |
+| --- | --- | --- |
+| Edytowalna powierzchnia ziemi oraz osobne rzeczy i konstrukcje | Ekonomiczny rozległy krajobraz, swobodne modele i moduły | Ciągłe przejście od powierzchni do wycinanej objętości lub podziemia wymaga dodatkowego modelu |
+| Jedna rzadka reprezentacja edytowalnej materii, również w lokalnych układach oderwanych fragmentów | Mniej konwersji, naturalna wspólna semantyka usuwania i podziału | Koszt rozdzielczości, zapisu, colliderów i połączeń; sparse nie znaczy automatycznie szybkie |
+| Połączenie ekonomicznego krajobrazu z lokalną materią objętościową | Potencjalne oszczędności przy zachowaniu miejscowej swobody | Najtrudniejsze są ruchome granice odpowiedzialności, np. oderwanie korzeni wraz z fragmentem brzegu |
+
+Voxele, gładka powierzchnia i moduły są także różnymi osiami projektu: dane, sposób wyświetlania, metoda kompozycji. Lokalna siatka obiektu nie wymaga jednej światowej kratki. Źródła analityczne/CSG, kolumny wielu warstw materiału i rzadka objętość są dalszymi wariantami, nie osobnymi konkurencyjnymi grami. Warstwowa kolumna może zapisywać również powietrze między skałami, zamiast ograniczać się do jednej wysokości; nie rozstrzyga jednak reprezentacji swobodnie obracanego oderwanego obiektu. Hybryda nie ma domyślnego pierwszeństwa tylko dlatego, że brzmi elastycznie.
+
+**Roboczy osąd:** najpierw określić trwałą materię, instancje i skutki, a reprezentację ocenić na konkretnym ciągu przemian w tej samej krainie: drzewo → pozyskana część → przeniesienie → zbudowana rzecz → powrót po odczycie i poprawce autora. To sprawdzian granic, nie zaplanowany scenariusz mieszkańców. Dokładny zakres cięcia i wpływu na grunt pozostaje pytaniem projektowym. Docelowy przyrost musi poprawiać jednocześnie granie, wygląd i życie; nie budujemy uniwersalnego silnika materii zamiast krainy.
+
+Naturalność geografii i jakość artystyczna wymagają osobnej kompozycji oraz weryfikacji. Wybór voxelowego źródła nie ustanawia wiarygodnej hydrologii lub siedlisk. Szczegół obrazu, aktywność fizyki i trwałość historii mają różne budżety. Nie zakładamy pełnej symulacji każdego odległego elementu, ale wyładowanie obszaru nie może usuwać skutków działań. [Źródła i faktyczne próby donorów](SOURCES.md#ponowne-badanie-reprezentacji--16102026) podają możliwości i falsyfikatory; nie są kwalifikacją przyszłego runtime'u.
+
+## Historyczny fundament pierwszej budowy
+
 **Aktualizacja 14.10.2026:** Owner zakończył postój i zatwierdził wznowienie implementacji oraz przebudowy. Poniższy tekst zachowuje kontekst pierwszej hipotezy, nie aktualną listę chronionych rozwiązań. [BUILD-02.md](BUILD-02.md) opisuje rzeczywistą drugą kampanię: postać gracza, formy i własne użycia, materialne próby, podłoże oraz dalsze miejscowe możliwości życia.
 
 Zapis drugiej budowy ma schemat 2: źródłami są lokalne formy i swobodne miejsca; płaskie części, miejsca oraz pozycje zasobów odbudowujemy jako projekcje. Historia autora dotyczy wskazanego zakresu, nie całego życia. Dawny schemat 1 i podłoże mają jawną migrację tej samej historii. Obecny wykonawca ma budżet triangulacji; to granica kosztu tej implementacji, nie ostateczny rozmiar świata.

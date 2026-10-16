@@ -4,6 +4,10 @@ Czytaj `README.md`, `docs/FOUNDATION.md` i właściwe źródła przed kontynuacj
 
 ## Bieżąca autoryzacja
 
+**Najnowszy krok — 16.10.2026:** Owner skierował pracę na ponowne badanie fundamentów i reprezentacji świata; bieżąca kampania jest badawcza, bez implementacji gry. **Feniks Studio ma być edytorem mapy.** MiniFeniks ma docelowo umożliwiać wszystkim aktorom, również graczowi, materialnie zmieniać świat: ścinać drzewa, budować i pozyskiwać materiały. To kierunek, nie zlecenie natychmiastowego wykonania tych mechanik. Voxele, moduły/tile, powierzchnie, ich połączenia oraz obecny silnik pozostają otwartymi wyborami. Nie traktuj dawnego planu rozbudowy edytora w grze jako obowiązującego kierunku. Aktualny osąd i granice dowodów są na początku `docs/FOUNDATION.md` oraz w końcowej części `docs/SOURCES.md`.
+
+Poniższe akapity zachowują historię i ogólny mandat do budowy; zakres bieżącego kroku wyznacza późniejsza instrukcja z 16.10, opisana powyżej.
+
 **14.10.2026 Owner jawnie zakończył postój i zatwierdził wznowienie implementacji, przebudowę istniejących systemów oraz dalszy rozwój gry w repozytorium.** Prowadź rzeczywistą budowę i weryfikację jednej krainy. Dobieraj kolejność, technikę i delegację samodzielnie; nie zamieniaj zgody w kolejną ogólną kampanię przygotowawczą. Aktualizuj działającą prywatną grę wystarczająco wcześnie, aby feedback mógł zmieniać kierunek.
 
 Wcześniejsza zgoda i postój z 13.10.2026 są historią projektu. Obowiązuje późniejsza zgoda z 14.10.2026. **Gracz jest pełnoprawnym aktorem w tym samym świecie**. Kamera, tożsamość postaci gracza oraz dokładna forma uczestnictwa nie są jeszcze zamrożone.
