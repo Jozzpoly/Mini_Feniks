@@ -119,10 +119,19 @@ export function createView(container: HTMLElement, source: RegionSource, terrain
     if (snapshot) for (const resident of snapshot.residents) { const rig = people.get(resident.id); if (rig) poseHuman(rig, resident, snapshot.seconds); }
     const subjectId=mode==='play'?playerId:focusedSubject,resident=snapshot?.residents.find(r=>r.id===subjectId),thing=snapshot?.things.find(t=>t.id===subjectId&&!t.consumed);
     const samples:THREE.Vector3[]=[];
-    if(resident){const p=new THREE.Vector3(...resident.position),lift=.6-.2*resident.posture;samples.push(p,p.clone().add(new THREE.Vector3(0,lift,0)),p.clone().add(new THREE.Vector3(0,-.5+.2*resident.posture,0)));}
+    let candidates:Map<string,THREE.Object3D>=partMeshes;
+    if(mode==='author'&&selection.visible){
+      // Reveal the actual selection (including its draft), never cut that form or its children.
+      const id=authorOperation?.kind==='create'?authorOperation.form.id:selectedForm;
+      const protectedParts=id?partIdsOf(currentSource(),id):new Set<string>();
+      candidates=new Map([...partMeshes].filter(([partId,mesh])=>mesh.visible&&!protectedParts.has(partId)));
+      const center=selection.box.getCenter(new THREE.Vector3()),height=selection.box.max.y-selection.box.min.y;
+      samples.push(center,center.clone().add(new THREE.Vector3(0,height*.4,0)),center.clone().add(new THREE.Vector3(0,-height*.4,0)));
+    }
+    else if(mode!=='author'&&resident){const p=new THREE.Vector3(...resident.position),lift=.6-.2*resident.posture;samples.push(p,p.clone().add(new THREE.Vector3(0,lift,0)),p.clone().add(new THREE.Vector3(0,-.5+.2*resident.posture,0)));}
     else if(thing)samples.push(new THREE.Vector3(...thing.position));
     // Actual intervening groups are a visual cutaway; authored parts and native contact remain intact.
-    cutaway.update(partMeshes,camera.position,samples,mode!=='author');
+    cutaway.update(candidates,camera.position,samples,true);
     renderer.render(scene, camera); frame = requestAnimationFrame(draw);
   };
   frame = requestAnimationFrame(draw);

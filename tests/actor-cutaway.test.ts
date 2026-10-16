@@ -19,7 +19,7 @@ describe('cutaway reveals a focused actor without rewriting the material world',
    cutaway.update(parts,eye,subject,true);expect((front.wall.material as THREE.Material).opacity).toBeLessThan(.2);
   }finally{cutaway.dispose();for(const p of [front,behind])p.group.traverse(o=>{if(o instanceof THREE.Mesh)o.geometry.dispose();});shared.dispose();}
  });
- it('restores original materials and frees its own clones when the view clears or authoring starts',()=>{
+ it('restores original materials and frees its own clones when the view clears or cutaway is disabled',()=>{
   const shared=new THREE.MeshStandardMaterial(),front=part(shared),parts=new Map([['front',front.group]]),cutaway=new ActorCutaway();
   try {
    cutaway.update(parts,new THREE.Vector3(0,1.4,8),[new THREE.Vector3(0,1.3,0)],true);

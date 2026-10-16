@@ -52,7 +52,7 @@ describe('actual view camera wiring and authoring boundary',()=>{
    }
   }finally{cleanup();}
  },20000);
- it('cuts the wall blocking the player, then restores all geometry for authoring, preview and cancel',async()=>{
+ it('reveals selected furniture through its parent, follows a preview, and restores the complete selected house',async()=>{
   const {session,view,part,frame,cleanup}=await setup();
   try {
    const floor=session.state.source.home.position[1];
@@ -63,12 +63,28 @@ describe('actual view camera wiring and authoring boundary',()=>{
    const wall=part('home-wall-front-right'),roof=part('home-roof'),original=(wall.children[0] as THREE.Mesh).material;
    view.camera.position.set(6,floor+1.25,8);frame();
    expect(((wall.children[0] as THREE.Mesh).material as THREE.Material).opacity).toBeLessThan(.2);
+   const bench=part('home-bench'),benchMaterial=(bench.children[0] as THREE.Mesh).material;
+   const roofMaterial=(roof.children[0] as THREE.Mesh).material;
    const saved=session.save();document.querySelector<HTMLButtonElement>('[data-action="author"]')!.click();frame();
-   expect((wall.children[0] as THREE.Mesh).material).toBe(original);expect(roof.visible).toBe(true);
+   expect(((roof.children[0] as THREE.Mesh).material as THREE.Material).opacity).toBeLessThan(.2);
+   expect((bench.children[0] as THREE.Mesh).material).toBe(benchMaterial);expect((benchMaterial as THREE.Material).opacity).toBe(1);expect(bench.visible).toBe(true);
+   const benchCenter=new THREE.Box3().setFromObject(bench).getCenter(new THREE.Vector3());
+   vi.spyOn(view.renderer.domElement,'getBoundingClientRect').mockReturnValue({left:0,top:0,right:800,bottom:400,width:800,height:400,x:0,y:0,toJSON(){return {};}});
+   view.camera.aspect=2;view.camera.updateProjectionMatrix();frame();
+   const point=bench.position.clone().project(view.camera);
+   expect(view.pick((point.x+1)*400,(1-point.y)*200)?.id).toBe('home-bench');
    const input=document.querySelector<HTMLInputElement>('[data-field="position-0"]')!;input.value='-18';input.dispatchEvent(new window.Event('input',{bubbles:true}));frame();
-   expect(session.save()).toBe(saved);
-   document.querySelector<HTMLButtonElement>('[data-action="cancel"]')!.click();frame();
-   expect((wall.children[0] as THREE.Mesh).material).toBe(original);expect(roof.visible).toBe(true);expect(session.save()).toBe(saved);
+   expect(session.save()).toBe(saved);expect(bench.visible).toBe(false);
+   // Looking down at the moved draft outside the house must not keep cutting the old location.
+   view.focus([-18,floor+.3,-1],7);view.camera.position.set(-18,floor+12,-1);frame();
+   expect((roof.children[0] as THREE.Mesh).material).toBe(roofMaterial);
+   document.querySelector<HTMLButtonElement>('[data-action="cancel"]')!.click();view.focus(benchCenter.toArray() as [number,number,number],7);frame();
+   expect(((roof.children[0] as THREE.Mesh).material as THREE.Material).opacity).toBeLessThan(.2);
+   expect(bench.visible).toBe(true);expect((bench.children[0] as THREE.Mesh).material).toBe(benchMaterial);expect(session.save()).toBe(saved);
+   const select=document.querySelector<HTMLSelectElement>('[data-form]')!;select.value=session.state.source.home.id;select.dispatchEvent(new window.Event('change',{bubbles:true}));frame();
+   expect((roof.children[0] as THREE.Mesh).material).toBe(roofMaterial);
+   expect((wall.children[0] as THREE.Mesh).material).toBe(original);
+   expect((bench.children[0] as THREE.Mesh).material).toBe(benchMaterial);expect(session.save()).toBe(saved);
   }finally{cleanup();}
  },20000);
  it('restores cutaway when switching to a wide view and releases a replaced source part',async()=>{
@@ -85,7 +101,7 @@ describe('actual view camera wiring and authoring boundary',()=>{
    expect(disposed).toBe(1);expect(wall.parent).toBeNull();expect(part('home-wall-front-right')).not.toBe(wall);
   }finally{cleanup();}
  },20000);
- it('lets the owner pick the player visible through a cutaway, while author mode picks the physical wall',async()=>{
+ it('lets the owner pick the player through a cutaway, while author mode without a selection picks the physical wall',async()=>{
   const {session,view,frame,cleanup}=await setup();
   try {
    const floor=session.state.source.home.position[1],checkpoint=JSON.parse(session.save()),player=checkpoint.residents.find((r:{control:string})=>r.control==='player');player.position=[-2.9,floor+.52,-1];player.posture=1;
