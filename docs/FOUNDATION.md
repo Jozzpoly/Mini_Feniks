@@ -28,6 +28,29 @@ Voxele, gładka powierzchnia i moduły są także różnymi osiami projektu: dan
 
 Naturalność geografii i jakość artystyczna wymagają osobnej kompozycji oraz weryfikacji. Wybór voxelowego źródła nie ustanawia wiarygodnej hydrologii lub siedlisk. Szczegół obrazu, aktywność fizyki i trwałość historii mają różne budżety. Nie zakładamy pełnej symulacji każdego odległego elementu, ale wyładowanie obszaru nie może usuwać skutków działań. [Źródła i faktyczne próby donorów](SOURCES.md#ponowne-badanie-reprezentacji--16102026) podają możliwości i falsyfikatory; nie są kwalifikacją przyszłego runtime'u.
 
+## Propozycja następnej kampanii — 16.10.2026
+
+Owner zlecił wyciągnięcie wniosków i zaplanowanie poważnej przebudowy. **To plan, nie wykonana zmiana ani nowe zatwierdzenie szczegółów architektury.** [Plan kampanii](superpowers/plans/2026-10-16-refoundation.md) zastępuje dawną kolejność rozwijania edytora w grze. Feniks Studio pozostaje miejscem autorskiego tworzenia mapy; aktualne narzędzia MiniFeniksa są przejściowym warsztatem i pomocą diagnostyczną.
+
+### Wnioski, które rzeczywiście zmieniają budowę
+
+1. **Najpierw wiarygodność zwykłego przebywania w świecie.** Niedziałające dojście, niewidoczna przeszkoda i kamera walcząca z domem podważają ocenę późniejszych mechanik. Przekomponujemy zamieszkany skraj doliny wraz z prowadzeniem ciała i czytelnością bliskiego obrazu, zachowując rozległe otoczenie. To nie będzie kolejna zamknięta plansza testowa.
+2. **Materialny skutek jest ważniejszy niż licznik zasobu.** Pierwsza próba podziału rzeczy ma zostawić rzeczywiste pozostałości, zachować materiał i dać co najmniej dwa sensowne sposoby jego wykorzystania. Przecięcie drzewa jest kandydatem prowadzącego, nie nowym wymaganiem Ownera ani całą obietnicą gry.
+3. **Nie projektujemy najpierw uniwersalnego systemu instancji.** Tożsamość po podziale, zapis i poprawkę autora rozstrzygniemy na faktycznej przemianie. Definicja–instancja–delta jest możliwą realizacją, a nie kolejnym chronionym fundamentem.
+4. **Własna sprawa mieszkańca musi mieć wynik w tym samym miejscu.** Progi głodu i zmęczenia mogą wpływać na wybór, lecz nie stanowić całego życia. Mieszkaniec ma zachowywać postęp, odpocząć, lokalnie odkryć ingerencję i móc zmienić zamiar. Pierwsza sprawa nie zatwierdza kultury, gospodarki lub rytuałów wspólnoty.
+
+### Robocze wybory i warunki ich odwołania
+
+| Wybór na początek wykonania | Dlaczego teraz | Co go podważa |
+| --- | --- | --- |
+| Obecny webowy punkt wejścia jako miejsce pierwszych przyrostów; Three.js i Box3D jako kandydaci wykonawczy | Mamy rzeczywiste granie, native próby i szybki kontakt przez prywatny adres. Nie wykazaliśmy jeszcze, że wymiana silnika da lepszy całościowy wynik | Brak potrzebnej geometrii, nieakceptowalny koszt aktualizacji lub brak kompetentnego ruchu i materialnej wzajemności mimo konkretnej próby |
+| Dla pierwszego terenu nadal powierzchnia wysokościowa, ale odtwarzana z zapisanej rewizji źródła, zamiast globalnego callbacku bieżącego buildu | Pierwszy spacer i zmiany odrębnych rzeczy nie wymagają kopania objętości ziemi. Możemy poprawiać geografię bez równoczesnej budowy całego silnika objętości | Rzeczywiście potrzebna topologia lub przemiana gruntu wymaga wyjątków i nie daje się wiarygodnie wykonać. Wtedy wracają kolumny warstwowe, rzadka objętość lub inne źródło |
+| Dla pierwszego podziału rzeczy lokalne bryły/segmenty wynikające z cięcia, bez domyślnej voxelizacji | To tańszy kandydat do wykazania zachowania materiału, kształtu i pochodzenia; nie wymaga jednej światowej kratki | Różne cięcia wymagają osobnych recept, forma jest nieakceptowalnie ograniczona lub kontakt nie odpowiada wynikowi. Następny kandydat: lokalna rzadka materia, oceniana na tych samych przemianach |
+
+Ten początek ma dwie różne reprezentacje, lecz **nie ustanawia docelowej hybrydy całej krainy**. Nie kwalifikuje podziału przez granicę ziemia–korzenie–oderwany brzeg. Jeżeli taki skutek stanie się potrzebny, trzeba rozstrzygnąć własność materiału i przejście między reprezentacjami; nie wolno ukryć braku animacją lub licznikiem. Jednolita rzadka materia pozostaje poważnym rywalem.
+
+Pierwszy etap ma dostarczyć przechodnie, czytelne i lepiej skomponowane miejsce w tej samej historii. Kolejne: realna zmiana materiału, własne sprawy ludzi oraz powrót po oddaleniu i odczycie. Szczegóły dalszych etapów dopracowujemy na wynikach poprzedniego; nie budujemy kilku konkurencyjnych krain ani całego frameworka na zapas.
+
 ## Historyczny fundament pierwszej budowy
 
 **Aktualizacja 14.10.2026:** Owner zakończył postój i zatwierdził wznowienie implementacji oraz przebudowy. Poniższy tekst zachowuje kontekst pierwszej hipotezy, nie aktualną listę chronionych rozwiązań. [BUILD-02.md](BUILD-02.md) opisuje rzeczywistą drugą kampanię: postać gracza, formy i własne użycia, materialne próby, podłoże oraz dalsze miejscowe możliwości życia.

@@ -20,6 +20,7 @@ Pierwszy gameplay potwierdził udział gracza i ujawnił błędy kamery. Oko otr
 
 - [Fundament i pierwszy ruch](docs/FOUNDATION.md): decyzje robocze, możliwość rozbudowy świata, granice dowodów oraz pierwszy przyrost do oceny.
 - [Źródła i nauka z donorów](docs/SOURCES.md): przypięte źródła projektów i zakres ich przydatności.
+- [Propozycja kampanii przebudowy](docs/superpowers/plans/2026-10-16-refoundation.md): wnioski z ponownego badania, kolejność zmian i pierwszy etap do wykonania; kod gry nie został jeszcze zmieniony w tej kampanii.
 - [Instrukcje prowadzenia pracy](AGENTS.md): ciągłość, autoryzacja i uczciwa ocena rezultatów.
 - [Pierwsza kampania](docs/BUILD-01.md): wynik pierwszego grania i przyczyny przebudowy.
 - [Druga kampania](docs/BUILD-02.md): wykonanie, sprawdzenia i granice aktualnego przyrostu.
