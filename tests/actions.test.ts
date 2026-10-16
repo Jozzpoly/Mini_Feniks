@@ -6,6 +6,13 @@ import { establishResourceSites } from '../src/world/resources';
 import { encodeCheckpoint, decodeCheckpoint } from '../src/world/checkpoint';
 
 describe('shared material attempts', () => {
+  it('lets a busy recipient keep its own state rather than forcing a social benefit',()=>{
+    const state=createWorld(createRegion()),a=state.residents[0],other=state.residents[1];
+    a.position=[10,130,10];other.position=[11,130,10];other.sociability=.8;
+    other.activity={kind:'gather',targetId:'busy',startedAt:0,elapsed:0,duration:2,origin:[...other.position]};
+    expect(executeAction(state,a.id,{kind:'greet',targetId:other.id}).accepted).toBe(true);
+    expect(other.sociability).toBe(.8);expect(other.activity).toBeDefined();
+  });
   it('rejects remote pickup, then lets one actor acquire the same released bag', () => {
     const state=createWorld(createRegion()),a=state.residents[1],bag=state.things[0];
     state.residents[0].holding=null;bag.heldBy=null;

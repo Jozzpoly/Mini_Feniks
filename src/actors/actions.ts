@@ -1,24 +1,15 @@
 import type { Resident, Vec3, WorldState } from '../world/types';
+import {occluded} from './spatial';
 
 export type ActorAction={kind:'pickup'|'eat'|'gather'|'rest'|'greet';targetId:string}|{kind:'put-down'};
 export interface ActionResult {accepted:boolean;reason:string;actorId:string;kind:ActorAction['kind'];targetId:string|null;}
 const range=(a:Vec3,b:Vec3)=>Math.hypot(a[0]-b[0],a[1]-b[1],a[2]-b[2]);
 
 /** The same authored solids used by the native adapter block an attempted reach. */
-export function actionSight(state:WorldState,actor:Resident,point:Vec3):boolean {
+export function actionSight(state:WorldState,actor:Resident,point:Vec3,omit?:string):boolean {
   const start:Vec3=[actor.position[0],actor.position[1]+.55,actor.position[2]];
   const end:Vec3=[point[0],point[1]+.08,point[2]];
-  return !state.source.home.parts.some(p=>{
-    if(!p.solid)return false;const c=Math.cos(p.yaw),s=Math.sin(p.yaw);
-    const local=(v:Vec3):Vec3=>{const dx=v[0]-p.position[0],dz=v[2]-p.position[2];return [c*dx-s*dz,v[1]-p.position[1],s*dx+c*dz];};
-    const a=local(start),b=local(end);let lo=0,hi=1;
-    for(let i=0;i<3;i++){
-      const h=p.size[i]/2,d=b[i]-a[i];
-      if(Math.abs(d)<1e-9){if(Math.abs(a[i])>h)return false;continue;}
-      let u=(-h-a[i])/d,v=(h-a[i])/d;if(u>v)[u,v]=[v,u];lo=Math.max(lo,u);hi=Math.min(hi,v);if(lo>hi)return false;
-    }
-    return lo<.998&&hi>.002;
-  });
+  return !occluded(state,start,end,[omit??'',actor.holding??'']);
 }
 function handPoint(actor:Resident):Vec3 {
   const [x,y,z,w]=actor.rotation,yaw=Math.atan2(2*(w*y+x*z),1-2*(y*y+z*z));
@@ -67,9 +58,11 @@ export function executeAction(state:WorldState,actorId:string,action:ActorAction
   if(action.kind==='greet'){
     const other=state.residents.find(r=>r.id===action.targetId&&r.id!==actor.id);
     if(!other||range(actor.position,other.position)>3.5||!actionSight(state,actor,other.position))return result(false,'Podejdź bliżej do tej osoby.');
-    actor.sociability=Math.max(0,actor.sociability-.35);other.sociability=Math.max(0,other.sociability-.2);
-    effect(state,actor,'met',other.id,`Pozdrawiam ${other.name}.`);
-    other.memories.push({time:state.seconds,kind:'met',target:actor.id,detail:`${actor.name} mnie pozdrawia.`});
+    const responds=other.control!=='player'&&!other.activity&&other.fatigue<.85&&other.hunger<.85;
+    actor.sociability=Math.max(0,actor.sociability-.35);
+    if(responds)other.sociability=Math.max(0,other.sociability-.2);
+    effect(state,actor,'met',other.id,responds?`Pozdrawiam ${other.name}; odpowiada mi.`:`Pozdrawiam ${other.name}; pozostawiam mu jego sprawę.`);
+    other.memories.push({time:state.seconds,kind:'met',target:actor.id,detail:responds?`${actor.name} mnie pozdrawia. Odpowiadam.`:`${actor.name} mnie pozdrawia. Nie przerywam własnej sprawy.`});
     if(other.memories.length>96)other.memories.splice(0,other.memories.length-96);
     return result(true,`Pozdrawiasz ${other.name}.`);
   }
@@ -77,7 +70,7 @@ export function executeAction(state:WorldState,actorId:string,action:ActorAction
   if(!thing)return result(false,'Ta rzecz nie jest już dostępna.');
   const own=thing.heldBy===actor.id&&actor.holding===thing.id;
   if(thing.heldBy&&!own)return result(false,'Rzecz trzyma inna osoba.');
-  if(!own&&(range(actor.position,thing.position)>1.8||!actionSight(state,actor,thing.position)))return result(false,'Rzecz jest poza dostępnym zasięgiem.');
+  if(!own&&(range(actor.position,thing.position)>1.8||!actionSight(state,actor,thing.position,thing.id)))return result(false,'Rzecz jest poza dostępnym zasięgiem.');
   if(action.kind==='pickup'){
     if(actor.holding)return result(false,'Najpierw uwolnij ręce.');
     actor.holding=thing.id;thing.heldBy=actor.id;effect(state,actor,'picked',thing.id,`Podejmuję chwyt: ${thing.label}.`);

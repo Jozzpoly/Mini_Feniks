@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { createTerrain } from '../src/view/landscape';
 import { createRegion } from '../src/world/source';
-import { ecologyAt, heightAt } from '../src/world/geography';
+import { ecologyAt, heightAt, TERRAIN_VERSION } from '../src/world/geography';
 
 describe('authored geography', () => {
   it('prepares a stable 6 by 4 kilometre drainage graph with strictly falling reaches', () => {
@@ -56,6 +56,31 @@ describe('authored geography', () => {
     expect(Math.max(...samples) - Math.min(...samples)).toBeGreaterThan(180);
     expect(habitats.size).toBeGreaterThanOrEqual(4);
     expect(new Set(createRegion().home.parts.map(p => p.id)).size).toBe(createRegion().home.parts.length);
+  });
+  it('opens broad walkable ground from the home to the lookout and western meadow', () => {
+    expect(TERRAIN_VERSION).toBe('jaworowa-living-3');
+    expect(heightAt(0, 0)).toBeCloseTo(128.58432008301136, 8);
+    for (const [ax, az, bx, bz] of [[-9, 8, -16, 24], [-10, 8, -40, 8], [0, -10, 0, -40]]) {
+      for (let i = 0; i <= 80; i++) {
+        const t = i / 80, x = ax + (bx-ax)*t, z = az + (bz-az)*t;
+        // A broad corridor, including its shoulders, rather than one lucky centreline.
+        for (const offset of [-2, 0, 2]) {
+          const dx = (heightAt(x+offset+.25,z)-heightAt(x+offset-.25,z))/.5;
+          const dz = (heightAt(x+offset,z+.25)-heightAt(x+offset,z-.25))/.5;
+          expect(Math.hypot(dx,dz), `${x},${z}, shoulder ${offset}`).toBeLessThan(.3);
+        }
+      }
+    }
+    expect(ecologyAt(-16,24).path).toBeGreaterThan(.9);
+    expect(ecologyAt(-40,8).path).toBeGreaterThan(.9);
+  });
+  it('rounds the inhabited terrace into the valley without a rectangular steep collar', () => {
+    for (let x = -50; x <= 50; x += 2) for (let z = -45; z <= 45; z += 2) {
+      const dx=(heightAt(x+.25,z)-heightAt(x-.25,z))/.5;
+      const dz=(heightAt(x,z+.25)-heightAt(x,z-.25))/.5;
+      expect(Math.hypot(dx,dz), `${x},${z}`).toBeLessThan(.45);
+    }
+    expect(heightAt(-120,10)-heightAt(0,0)).toBeGreaterThan(8);
   });
 });
 

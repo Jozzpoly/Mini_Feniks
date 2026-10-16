@@ -3,7 +3,7 @@ import type { Drive, PartSource, Quat, RegionSource, Resident, Thing, Vec3, Worl
 import { sharedTerrainSurface } from '../world/terrain-surface';
 import { executeAction } from '../actors/actions';
 
-const MASS=80, GRAVITY=9.81, MAX_LEG_FORCE=1800, MAX_DRIVE_FORCE=240, MAX_GRIP_FORCE=120;
+const MASS=80, GRAVITY=9.81, MAX_LEG_FORCE=1800, MAX_DRIVE_FORCE=240, MAX_GRIP_FORCE=120, MAX_GRIP_TORQUE=18, GRIP_FREQUENCY=15;
 let modulePromise: Promise<Box3DModule>|undefined;
 const clamp=(n:number,a:number,b:number)=>Math.max(a,Math.min(b,n));
 const length=(v:Vec3)=>Math.hypot(...v);
@@ -31,6 +31,7 @@ export class WorldPhysics {
   private world;
   private disposed=false;
   private gripStrain=new Map<string,number>();
+  private gripOrientations=new Map<string,{thingId:string;relativeYaw:number}>();
 
   constructor(private b3:Box3DModule,state:WorldState,private ground:(x:number,z:number)=>number){
     const def=b3.b3DefaultWorldDef();def.gravity=[0,-GRAVITY,0];def.enableSleep=true;
@@ -204,14 +205,34 @@ export class WorldPhysics {
 
   private grips(state:WorldState,dt:number){
     for(const a of state.residents){
-      if(!a.holding){this.gripStrain.delete(a.id);continue;}const t=state.things.find(t=>t.id===a.holding);
+      if(!a.holding){this.gripStrain.delete(a.id);this.gripOrientations.delete(a.id);continue;}const t=state.things.find(t=>t.id===a.holding);
       const actor=this.bodies.get(a.id),body=t&&this.bodies.get(t.id);if(!t||!actor||!body)continue;
+      const carryYaw=a.carryYaw??0,carryHeight=a.carryHeight??0;
+      let orientation=this.gripOrientations.get(a.id);
+      if(orientation?.thingId!==t.id){
+        // Capture the acquired pose, rather than rotating every new grip to a world axis.
+        // Reopening a held checkpoint likewise starts from its actual native pose.
+        orientation={thingId:t.id,relativeYaw:yawOf(t.rotation)-yawOf(a.rotation)-carryYaw};
+        this.gripOrientations.set(a.id,orientation);
+      }
       const point:Vec3=[0,0,0],velocity:Vec3=[0,0,0];
-      this.b3.b3Body_GetWorldPoint(point,actor,[0,.22,.62]);this.b3.b3Body_GetWorldPointVelocity(velocity,actor,point);
-      const raw:Vec3=point.map((n,i)=>(n-t.position[i])*600+(velocity[i]-t.velocity[i])*75) as Vec3;
+      this.b3.b3Body_GetWorldPoint(point,actor,[0,.22+carryHeight,.62]);this.b3.b3Body_GetWorldPointVelocity(velocity,actor,point);
+      // Fixed force gains destabilize light portions under explicit impulses.
+      // Reduced translational mass gives the relative spring a nominal finite
+      // frequency (rad/s) and critical damping, independent of load mass.
+      const reducedMass=1/(this.b3.b3Body_GetInverseMass(actor)+this.b3.b3Body_GetInverseMass(body));
+      const stiffness=reducedMass*GRIP_FREQUENCY**2,damping=2*reducedMass*GRIP_FREQUENCY;
+      const raw:Vec3=point.map((n,i)=>(n-t.position[i])*stiffness+(velocity[i]-t.velocity[i])*damping) as Vec3;
       const force=scaled(raw,MAX_GRIP_FORCE),impulse=force.map(n=>n*dt) as Vec3;
       this.b3.b3Body_ApplyLinearImpulseToCenter(body,impulse,true);
       this.b3.b3Body_ApplyLinearImpulse(actor,impulse.map(n=>-n) as Vec3,point,true);
+      // A finite yaw grip controls relative angular motion. Its opposite impulse
+      // acts on the carrier; neither body receives a prescribed rotation/velocity.
+      const yawError=Math.atan2(Math.sin(yawOf(a.rotation)+carryYaw+orientation.relativeYaw-yawOf(t.rotation)),Math.cos(yawOf(a.rotation)+carryYaw+orientation.relativeYaw-yawOf(t.rotation)));
+      const yawInertia=t.mass*(t.size[0]**2+t.size[2]**2)/12;
+      const torque=clamp(yawInertia*(32*yawError-10*(t.angularVelocity[1]-a.angularVelocity[1])),-MAX_GRIP_TORQUE,MAX_GRIP_TORQUE);
+      this.b3.b3Body_ApplyAngularImpulse(body,[0,torque*dt,0],true);
+      this.b3.b3Body_ApplyAngularImpulse(actor,[0,-torque*dt,0],true);
       this.metrics.maxGripForce=Math.max(this.metrics.maxGripForce,length(force));
       const strain=length(raw)>MAX_GRIP_FORCE*1.8?(this.gripStrain.get(a.id)??0)+dt:0;this.gripStrain.set(a.id,strain);
       if(strain>1.2)this.release(a.id,state,'Chwyt przekroczył wytrzymałość');
@@ -222,6 +243,7 @@ export class WorldPhysics {
     const a=state.residents.find(r=>r.id===id);if(!a)return false;
     const action=executeAction(state,id,{kind:'put-down'});if(!action.accepted)return false;
     this.gripStrain.delete(id);
+    this.gripOrientations.delete(id);
     state.events.at(-1)!.detail=detail;a.memories.at(-1)!.detail=detail;return true;
   }
 

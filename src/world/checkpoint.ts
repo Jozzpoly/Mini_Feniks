@@ -121,7 +121,19 @@ function validate(value: unknown): asserts value is WorldState {
     requireValue([...sites.keys()].every(id=>stocks.has(id)),'kompletność zasobów');
   }else requireValue(sites.size===0,'brak stanu zasobów');
   const residents = list(w.residents, 'mieszkańcy').map(value => {
-    const p = object(value, 'id name position rotation velocity angularVelocity fatigue hunger sociability curiosity preferredRest known knownParts knownThings memories intent posture holding blockedFor restUntil reconsiderAt', 'mieszkaniec', 'control knownResources knownPeople');
+    const p = object(value, 'id name position rotation velocity angularVelocity fatigue hunger sociability curiosity preferredRest known knownParts knownThings memories intent posture holding blockedFor restUntil reconsiderAt', 'mieszkaniec', 'control knownResources knownPeople carryYaw carryHeight activity concern');
+    if(p.carryYaw!==undefined)number(p.carryYaw,'obrót chwytu',-Math.PI,Math.PI);
+    if(p.carryHeight!==undefined)number(p.carryHeight,'wysokość chwytu',-.4,1.1);
+    if(p.activity!==undefined){
+      const a=object(p.activity,'kind targetId elapsed duration startedAt origin','czynność');
+      choice(a.kind,'eat gather','rodzaj czynności');text(a.targetId,'cel czynności');
+      number(a.duration,'czas wykonania',.01,60);number(a.elapsed,'postęp',0,a.duration as number);number(a.startedAt,'początek czynności',0,now);vector(a.origin,3,'początek pracy');
+    }
+    if(p.concern!==undefined){
+      const c=object(p.concern,'kind placeId desiredUnits startedAt reason satisfied','własna sprawa');
+      choice(c.kind,'provision','rodzaj sprawy');text(c.placeId,'miejsce sprawy');integer(c.desiredUnits,'oczekiwany zapas',1);number(c.desiredUnits,'rozmiar zapasu',1,20);
+      number(c.startedAt,'początek sprawy',0,now);text(c.reason,'powód sprawy');requireValue(typeof c.satisfied==='boolean','stan sprawy');
+    }
     register(p.id); text(p.name, 'imię');
     if(p.control!==undefined)choice(p.control,'player resident','źródło kontroli');
     if(p.knownResources!==undefined){
@@ -165,9 +177,11 @@ function validate(value: unknown): asserts value is WorldState {
     });
     const knownThingIds = new Set<unknown>();
     list(p.knownThings, 'wiedza rzeczy').forEach(value => {
-      const k = object(value, 'id kind position seenAt available', 'znana rzecz');
+      const k = object(value, 'id kind position seenAt available', 'znana rzecz','size rotation present');
+      if(k.size!==undefined)vector(k.size,3,'poznane wymiary',true);if(k.rotation!==undefined)quaternion(k.rotation,'poznana orientacja');
       text(k.id, 'ID znanej rzeczy'); requireValue(!knownThingIds.has(k.id), 'powtórzona znana rzecz'); knownThingIds.add(k.id);
-      choice(k.kind, 'bag food stool', 'zapamiętany rodzaj rzeczy'); vector(k.position, 3, 'zapamiętane położenie rzeczy');
+      if(k.present!==undefined)requireValue(typeof k.present==='boolean','zapamiętana obecność rzeczy');
+      choice(k.kind, 'bag food stool material', 'zapamiętany rodzaj rzeczy'); vector(k.position, 3, 'zapamiętane położenie rzeczy');
       number(k.seenAt, 'czas obserwacji rzeczy', 0, now); requireValue(typeof k.available === 'boolean', 'zapamiętana dostępność');
     });
     list(p.memories, 'pamięć').forEach(value => {
@@ -176,7 +190,7 @@ function validate(value: unknown): asserts value is WorldState {
       text(m.target, 'cel wspomnienia'); text(m.detail, 'treść wspomnienia', true);
     });
     const intent = object(p.intent, 'goal targetId reason chosenAt', 'zamiar');
-    choice(intent.goal, 'carry-home rest eat wander quiet gather meet', 'cel zamiaru'); nullableId(intent.targetId, 'ID celu');
+    choice(intent.goal, 'carry-home rest eat wander quiet gather meet store fetch', 'cel zamiaru'); nullableId(intent.targetId, 'ID celu');
     text(intent.reason, 'powód', true); number(intent.chosenAt, 'czas decyzji', 0, now);
     return p;
   });
@@ -184,8 +198,9 @@ function validate(value: unknown): asserts value is WorldState {
   const residentIds = new Set(residents.map(p => p.id));
   requireValue(residents.filter(r=>r.control==='player').length<=1,'jedna postać gracza');
   const things = list(w.things, 'rzeczy').map(value => {
-    const t = object(value, 'id label kind size mass position rotation velocity angularVelocity heldBy consumed', 'rzecz','foodFlavor');
-    register(t.id); text(t.label, 'nazwa rzeczy'); choice(t.kind, 'bag food stool', 'rodzaj rzeczy');
+    const t = object(value, 'id label kind size mass position rotation velocity angularVelocity heldBy consumed', 'rzecz','foodFlavor material');
+    register(t.id); text(t.label, 'nazwa rzeczy'); choice(t.kind, 'bag food stool material', 'rodzaj rzeczy');
+    if(t.material!==undefined)choice(t.material,'stone plaster timber thatch earth water cloth leaves','materiał rzeczy');
     if(t.foodFlavor!==undefined)choice(t.foodFlavor,'bread berries apple','rodzaj żywności');
     vector(t.size, 3, 'wymiary rzeczy', true);requireValue((t.size as number[]).every(v=>v>=.02&&v<=200),'wymiary rzeczy poza zakresem wykonawcy');number(t.mass, 'masa', .001, 1e7);
     vector(t.position, 3, 'położenie rzeczy'); quaternion(t.rotation, 'orientacja rzeczy');
@@ -198,6 +213,9 @@ function validate(value: unknown): asserts value is WorldState {
     const held = things.filter(t => t.heldBy === person.id);
     requireValue(person.holding === null ? held.length === 0 : held.length === 1 && held[0].id === person.holding, 'zgodność chwytu');
     const intent = person.intent as Data;
+    const activity=person.activity as Data|undefined,concern=person.concern as Data|undefined;
+    if(activity)requireValue(identities.has(activity.targetId as string)||retired.has(activity.targetId),'powiązanie czynności');
+    if(concern)requireValue(placeIds.has(concern.placeId)||retired.has(concern.placeId),'powiązanie własnej sprawy');
     requireValue(intent.targetId === null || identities.has(intent.targetId as string)||retired.has(intent.targetId), 'powiązanie celu zamiaru');
     for (const k of person.known as Data[]) requireValue(k.occupiedBy === null || residentIds.has(k.occupiedBy), 'powiązanie poznanej osoby');
     if(person.knownPeople!==undefined)for(const k of person.knownPeople as Data[])requireValue(residentIds.has(k.id),'powiązanie poznanej osoby');

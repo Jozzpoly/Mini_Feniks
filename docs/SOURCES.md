@@ -122,3 +122,13 @@ Rachunek skali, nie pomiar gry: przy przykładowym zakresie 6×4 km i 256 m wyso
 ### Granica Studio
 
 [Feniks Studio `7c8666e`](https://github.com/Jozzpoly/Feniks-Studio/tree/7c8666ebf88a19c0b4b06c1c9dc9955b9e7c34ba) w sprawdzonych zdalnych gałęziach zawiera projekt i plan, bez aplikacji lub wykonanego mostu. Nie wyklucza to nieopublikowanej pracy. Jego instrukcje zabraniają uznawania formatu MiniFeniksa za obowiązkowy format Studio. Odrębna rewizja assetu, umieszczenie i archiwum projektu są tam propozycjami. Nie budowano w tym badaniu importera, nowego frameworka lub konkurencyjnego edytora.
+
+
+## Zastosowanie w kampanii 04 — 16.10.2026
+
+- Character/E19: zachowano wzajemną, skończoną reakcję chwytu; nowa adaptacja używa rzeczywistych mas obu native ciał, tłumienia zależnego od masy i ograniczonego momentu yaw. Próba porcji 0,18 kg obaliła wcześniejsze stałe K/D: chwyt zrywał się po rozkołysaniu. Nowe próby obejmują także zwykłą torbę i przeciążenie. To nasza adaptacja, nie skopiowana kwalifikacja donora.
+- Llm-Live-NPC: wykorzystano rozdział prośby, trwającej pracy, przerwania i materialnego zatwierdzenia. Nie dołączono LLM/API ani zdalnego planera. Prywatna troska o zapas jest małą bieżącą kompetencją; nie dziedziczy pełnego rozumowania projektu NPC.
+- ANVIL/FrameMatter: materiał określa masę luźnych brył, zaś dotyk nie tworzy sztywnego połączenia. Nie przeniesiono całego modelu komórek, grafu konstrukcji lub frameworka.
+- Jaskinia: jej idea taniego feedbacku zainspirowała mały ślad gameplayu do pliku (ostatnie zdarzenia, zamiary i stan czynności), bez nowej integracji usług lub transmisji danych.
+
+Żaden z tych transferów nie kwalifikuje jeszcze samodzielnego życia wspólnoty, realistycznej konstrukcji, całego ekosystemu lub jakości artystycznej krainy. Wyniki native i próby interfejsu zapisujemy w [BUILD-04](BUILD-04.md).

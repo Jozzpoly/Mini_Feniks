@@ -11,12 +11,13 @@ describe('camera clearance over the established physical terrain',()=>{
  it('keeps the gameplay Mira focus above the rendered slope without changing the world',async()=>{
   const state=createWorld(createRegion()),before=JSON.stringify(state),physics=await createPhysics(state,heightAt),terrain=createTerrain(state.source);
   try {
-   // Native witness after 52 seconds. The previous focus(9) put its eye 0.414 m underground.
+   // Preserve the previous witness location; place the eye below this revision's actual mesh.
    const target=new THREE.Vector3(-12.426338195800781,130.30342712402344,15.49598217010498);
    const eye=new THREE.Vector3(-7.476338195800781,134.22342712402343,21.61598217010498);
    const x=eye.x,z=eye.z,ray=new THREE.Raycaster(new THREE.Vector3(x,900,z),new THREE.Vector3(0,-1,0));
    terrain.updateMatrixWorld(true);
    const rendered=ray.intersectObject(terrain)[0].point.y;
+   eye.y=rendered-.414;
    expect(eye.y-rendered).toBeLessThan(-.4);
    keepCameraAboveTerrain(eye,(x,z)=>physics.terrainHeightAt(x,z));
    expect(eye.y-rendered).toBeGreaterThanOrEqual(.5);

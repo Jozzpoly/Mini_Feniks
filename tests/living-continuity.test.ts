@@ -50,6 +50,8 @@ describe('life after the opening meal', () => {
     const s=await createSession(state,heightAt);
     try {
       expect(s.act({kind:'gather',targetId:site.id}).accepted).toBe(true);
+      expect(s.player.activity?.kind).toBe('gather');
+      for(let i=0;i<30;i++)s.advance(.1);
       const held=s.player.holding!,remaining=s.state.resources![0].units;
       expect(s.physics.bodies.has(held)).toBe(true);
       for(let i=0;i<10;i++)s.advance(.1);
@@ -59,6 +61,8 @@ describe('life after the opening meal', () => {
       expect(s.player.holding).toBe(held);expect(s.physics.bodies.has(held)).toBe(true);
       expect(s.state.resources![0].units).toBe(remaining);
       expect(s.act({kind:'eat',targetId:held}).accepted).toBe(true);
+      expect(s.physics.bodies.has(held)).toBe(true);
+      for(let i=0;i<40;i++)s.advance(.1);
       expect(s.physics.bodies.has(held)).toBe(false);
       expect(s.player.hunger).toBeLessThan(.6);
       expect(s.act({kind:'eat',targetId:held}).accepted).toBe(false);

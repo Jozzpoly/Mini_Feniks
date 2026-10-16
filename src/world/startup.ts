@@ -5,6 +5,12 @@ import { REGION_SEED, TERRAIN_VERSION, createChannels, channelRecipe } from './g
 import type { WorldState } from './types';
 import { upgradeWorldHistory } from './migration';
 
+/** R&D generation has its own slot. The previous gameplay checkpoint is never overwritten. */
+export const STORAGE_KEY='mini-feniks:checkpoint:living-04';
+export function readLivingWorld(storage:Pick<Storage,'getItem'>):WorldState{
+  return readStartingWorld({getItem:()=>storage.getItem(STORAGE_KEY)});
+}
+
 /** Invalid saved history stops startup; it is never silently replaced by a fresh world. */
 export function readStartingWorld(storage:Pick<Storage,'getItem'>):WorldState{
   const saved=storage.getItem('mini-feniks:checkpoint');

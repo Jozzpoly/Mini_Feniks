@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { chooseIntent, observeResident, stepLife } from '../src/life';
+import {advanceActivities} from '../src/actors/activities';
 import type { Resident, WorldState } from '../src/world/types';
 
 function person(id = 'ada'): Resident {
@@ -119,6 +120,7 @@ describe('life drives actual physical execution', () => {
   it('consumes only one arrived, observed, unheld finite portion', () => {
     const state=world(),resident=state.residents[0];resident.position=[8,0,1.3];resident.hunger=.95;resident.fatigue=.1;
     stepLife(state,.1);
+    expect(state.things[0].consumed).toBe(false);state.seconds+=4;advanceActivities(state,4);
     expect(state.things[0].consumed).toBe(true);
     const ate=resident.memories.filter(m=>m.kind==='ate').length;
     resident.hunger=.95;state.seconds+=5;stepLife(state,.1);
@@ -173,6 +175,7 @@ describe('life drives actual physical execution', () => {
     const state=world(),resident=state.residents[0];resident.position=[8,0,1.3];resident.fatigue=.1;resident.hunger=.95;resident.curiosity=.9;
     state.source.places.push({id:'ridge',kind:'lookout',position:[12,0,0],label:'skraj'});
     stepLife(state,.1);
+    state.seconds+=4;advanceActivities(state,4);stepLife(state,0);
     expect(state.things[0].consumed).toBe(true);
     expect(resident.intent.goal).toBe('wander');
     expect(resident.intent.targetId).toBe('ridge');
@@ -209,6 +212,7 @@ describe('life drives actual physical execution', () => {
     state.things[0].position=[8,.92,0];
     state.source.home.parts=[{id:'table',label:'stół',position:[8,.78,0],size:[1.8,.14,1.05],yaw:0,role:'table',material:'timber',solid:true}];
     const drive=stepLife(state,.1).get(resident.id)!;
+    state.seconds+=4;advanceActivities(state,4);
     expect(Math.hypot(resident.position[0]-state.things[0].position[0],resident.position[2]-state.things[0].position[2])).toBeGreaterThan(.835);
     expect(state.things[0].consumed).toBe(true);
     expect(drive.velocity).toEqual([0,0,0]);

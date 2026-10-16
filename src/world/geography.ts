@@ -1,7 +1,7 @@
 import type { Channel, Vec3 } from './types';
 
 export const REGION_SEED = 130626;
-export const TERRAIN_VERSION = 'jaworowa-drainage-2';
+export const TERRAIN_VERSION = 'jaworowa-living-3';
 /** Hand-authored watershed. Branches end at exactly the main channel's confluences.
  * Y is water elevation; the northern and southern ends continue beyond prepared land. */
 const DRAINAGE: Channel[] = [
@@ -73,14 +73,38 @@ function continuousNaturalHeightAt(x: number, z: number): number {
   return elevation;
 }
 export function heightAt(x: number, z: number): number {
-  const distance = Math.max(Math.abs(x) / 12, Math.abs(z - 1) / 13);
-  const blend = smooth(Math.max(0, Math.min(1, distance - 1)));
-  return TERRACE_GRADE * (1 - blend) + continuousNaturalHeightAt(x, z) * blend;
+  // The house rests on an old, broad valley shoulder. Keep its established grade,
+  // then give the meadow room to meet the hillside instead of making a 12 m berm.
+  // A rounded, gently uneven apron has no rectangular edges or narrow exit ramps.
+  const radius = Math.hypot(x * .9, z - 1);
+  const natural = continuousNaturalHeightAt(x,z);
+  if(radius>=172)return natural;
+  const shoulder = 142 + 16 * noise(x, z, 95, 91);
+  const blend = smooth(Math.max(0, Math.min(1, (radius - 14) / shoulder)));
+  const d = drainageAt(x,z);
+  // Leave beds and their floodplains under the established watershed authority.
+  const dryShoulder = smooth(Math.max(0,Math.min(1,(d.distance-d.width*.5-18)/35)));
+  return natural + (TERRACE_GRADE-natural) * (1-blend) * dryShoulder;
+}
+const FOOTPATHS: readonly (readonly (readonly [number,number])[])[] = [
+  [[0,5.4],[-8,10],[-16,24],[-25,58],[-35,100],[-36,160],[-25,235]],
+  [[-8,10],[-40,8],[-80,6],[-140,22],[-220,48]],
+  [[-8,10],[-14,-10],[-16,-50],[-30,-100],[-35,-180],[-17,-240]],
+];
+/** Worn local footways, continuous at their ends and shared by soil and plants. */
+function footpathAt(x:number,z:number):number{
+  let distance=Infinity;
+  for(const path of FOOTPATHS)for(let i=1;i<path.length;i++){
+    const [ax,az]=path[i-1],[bx,bz]=path[i],dx=bx-ax,dz=bz-az;
+    const t=Math.max(0,Math.min(1,((x-ax)*dx+(z-az)*dz)/(dx*dx+dz*dz)));
+    distance=Math.min(distance,Math.hypot(x-ax-dx*t,z-az-dz*t));
+  }
+  return Math.exp(-Math.pow(distance/(1.15+noise(x,z,17,92)*.45),2));
 }
 export type Habitat = 'riverbank' | 'meadow' | 'woodland' | 'heath' | 'rock';
 export function ecologyAt(x: number, z: number, elevation=heightAt(x,z)): { habitat: Habitat; density: number; moisture: number; path: number } {
   const d = drainageAt(x, z), y = elevation, patch = noise(x, z, 280, 17);
-  const path = Math.exp(-Math.pow((x + 9 + 13 * Math.sin(z / 72)) / 2.2, 2)) * (Math.abs(z) < 240 ? 1 : 0);
+  const path = footpathAt(x,z);
   const clearing = Math.exp(-(x * x / 2300 + z * z / 4600));
   const moisture = Math.exp(-d.distance / 140);
   let habitat: Habitat = d.distance < d.width + 12 ? 'riverbank' : y > 275 ? 'rock' : y > 220 || patch < .19 ? 'heath' : patch > .47 && clearing < .32 ? 'woodland' : 'meadow';

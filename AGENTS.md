@@ -4,6 +4,10 @@ Czytaj `README.md`, `docs/FOUNDATION.md` i właściwe źródła przed kontynuacj
 
 ## Bieżąca autoryzacja
 
+**16.10.2026, nowa zgoda Ownera:** rozpoczęta duża kampania implementacyjna. Owner pozwala gruntownie zmieniać fundamenty i ostatni plan. Rozwijaj wspólne prawa materialnych rzeczy, własne sprawy mieszkańców i jakość grania równocześnie; nie czekaj na doskonałą geografię. Dopuszczone jest świadome zerwanie kompatybilności R&D po zachowaniu ważnych zapisów. W kampanii 04 nowa gra używa osobnego slotu `mini-feniks:checkpoint:living-04`; poprzedni `mini-feniks:checkpoint` nie jest nadpisywany. Feniks Studio pozostaje przyszłym edytorem. Bieżący zakres i wykonane dowody zapisujemy w `docs/BUILD-04.md`; wcześniejszy plan jest kontekstem, nie blokadą budowy.
+
+Poniższy krok planistyczny został zakończony i zastąpiony powyższą zgodą.
+
 **Najnowszy krok — 16.10.2026:** po badaniu fundamentów Owner zlecił wyciągnięcie wniosków i zaplanowanie poważnej kampanii przebudowy. Bieżący run przygotowuje plan, bez implementacji gry. Propozycja prowadzącego: `docs/superpowers/plans/2026-10-16-refoundation.md`; nie jest wykonanym wynikiem ani ratyfikacją szczegółów architektury. **Feniks Studio ma być edytorem mapy.** MiniFeniks ma docelowo umożliwiać wszystkim aktorom, również graczowi, materialnie zmieniać świat: ścinać drzewa, budować i pozyskiwać materiały. To kierunek, nie zlecenie natychmiastowego wykonania tych mechanik. Voxele, moduły/tile, powierzchnie, ich połączenia oraz obecny silnik pozostają odwoływalnymi wyborami. Nie traktuj dawnego planu rozbudowy edytora w grze jako obowiązującego kierunku. Aktualny osąd i granice dowodów są na początku `docs/FOUNDATION.md` oraz w końcowej części `docs/SOURCES.md`.
 
 Poniższe akapity zachowują historię i ogólny mandat do budowy; zakres bieżącego kroku wyznacza późniejsza instrukcja z 16.10, opisana powyżej.

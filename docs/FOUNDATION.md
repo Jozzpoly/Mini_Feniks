@@ -2,9 +2,15 @@
 
 13.10.2026 · fundament roboczy · implementacja rozpoczęta po jawnej zgodzie Ownera
 
+## Aktualny przyrost — kampania 04
+
+Owner zatwierdził rzeczywistą dużą budowę 16.10.2026. [BUILD-04](BUILD-04.md) opisuje wykonanie. Nie czekamy na doskonały uniwersalny model materii: jednocześnie rozwijamy materialne przenoszenie, trwające czynności, pierwszą własną troskę mieszkańca i jakość przebywania w rozległej krainie. Teren pozostaje powierzchnią, luźne rzeczy osobnymi dynamicznymi pudełkami. To wybór aktualnego przyrostu, bez immunitetu wobec przyszłej przebudowy.
+
+Zapis ma odrębny slot, aby zmiana reguły terenu nie nadpisała starej historii. Nie wprowadzono wspólnej infrastruktury voxelowej, podziału ciał, budowania z połączeniami ani importu modeli ze Studio. Próby oraz wykryte regresje wskazują rzeczywiste następne problemy; wcześniejszy plan poniżej jest materiałem historycznym, nie obowiązującą sekwencją.
+
 ## Ponowne otwarcie modelu świata — 16.10.2026
 
-**Bezpośrednia korekta Ownera:** Feniks Studio służy autorskiemu tworzeniu mapy; MiniFeniks potrzebuje materialnej zmienności dostępnej wszystkim aktorom, również graczowi. Ścinka, budowanie i pozyskiwanie materiałów wyznaczają przyszłe możliwości, nie bieżącą listę mechanik. Obecnie badamy fundamenty bez implementacji. Otwarty pozostaje rodzaj świata, jego reprezentacje, silnik i podział odpowiedzialności. Poniższy dawny fundament jest historią hipotezy.
+**Bezpośrednia korekta Ownera:** Feniks Studio służy autorskiemu tworzeniu mapy; MiniFeniks potrzebuje materialnej zmienności dostępnej wszystkim aktorom, również graczowi. Ścinka, budowanie i pozyskiwanie materiałów wyznaczają przyszłe możliwości, nie bieżącą listę mechanik. W poprzednim etapie badaliśmy fundamenty bez implementacji; ten postój został zakończony. Otwarty pozostaje rodzaj świata, jego reprezentacje, silnik i podział odpowiedzialności. Poniższy dawny fundament jest historią hipotezy.
 
 Najważniejszy brak obecnego wykonania: większość lasu powstaje tylko w rendererze, ziemia jest niezmienną kompilacją funkcji wysokości, a części mają wąski opis `size/yaw/material/role/solid`. Dla dachu obraz jest klinem, lecz collider i promień czynności testują pełne pudełko. Formularz źródła, materialny stan, kontakt i wygląd muszą dojrzeć razem; więcej gotowych czynności tego nie rozwiązuje. Odsłanianie edytowanej ławy naprawia konkretną regresję, nie kwalifikuje tego modelu świata.
 
@@ -28,7 +34,7 @@ Voxele, gładka powierzchnia i moduły są także różnymi osiami projektu: dan
 
 Naturalność geografii i jakość artystyczna wymagają osobnej kompozycji oraz weryfikacji. Wybór voxelowego źródła nie ustanawia wiarygodnej hydrologii lub siedlisk. Szczegół obrazu, aktywność fizyki i trwałość historii mają różne budżety. Nie zakładamy pełnej symulacji każdego odległego elementu, ale wyładowanie obszaru nie może usuwać skutków działań. [Źródła i faktyczne próby donorów](SOURCES.md#ponowne-badanie-reprezentacji--16102026) podają możliwości i falsyfikatory; nie są kwalifikacją przyszłego runtime'u.
 
-## Propozycja następnej kampanii — 16.10.2026
+## Wcześniejsza propozycja kampanii — 16.10.2026
 
 Owner zlecił wyciągnięcie wniosków i zaplanowanie poważnej przebudowy. **To plan, nie wykonana zmiana ani nowe zatwierdzenie szczegółów architektury.** [Plan kampanii](superpowers/plans/2026-10-16-refoundation.md) zastępuje dawną kolejność rozwijania edytora w grze. Feniks Studio pozostaje miejscem autorskiego tworzenia mapy; aktualne narzędzia MiniFeniksa są przejściowym warsztatem i pomocą diagnostyczną.
 

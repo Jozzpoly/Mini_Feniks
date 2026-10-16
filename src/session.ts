@@ -7,6 +7,7 @@ import { AuthoringHistory, type AuthoringOperation, type AuthoringResult } from 
 import { upgradeWorldHistory } from './world/migration';
 import { establishResourceSites } from './world/resources';
 import { executeAction, type ActorAction, type ActionResult } from './actors/actions';
+import { requestAction, advanceActivities } from './actors/activities';
 import { channelRecipe } from './world/geography';
 import type { Drive, PartSource, RevisionResult, Vec3, WorldState } from './world/types';
 
@@ -36,8 +37,16 @@ export class Session {
   }
   clearPlayerInput(){this.playerInput=[0,0,0];this.drives.set(this.player.id,{velocity:[0,0,0],posture:this.playerPosture});}
   setPlayerPosture(posture:number){this.playerPosture=Number.isFinite(posture)?Math.max(0,Math.min(1,posture)):0;}
+  adjustCarry(yawDelta:number,heightDelta:number):{accepted:boolean;reason:string}{
+    if(this.paused||!this.player.holding||![yawDelta,heightDelta].every(Number.isFinite))return {accepted:false,reason:'Najpierw podejmij rzecz i wznów czas.'};
+    const yaw=(this.player.carryYaw??0)+yawDelta;
+    this.player.carryYaw=Math.atan2(Math.sin(yaw),Math.cos(yaw));
+    this.player.carryHeight=Math.max(-.4,Math.min(1.1,(this.player.carryHeight??0)+heightDelta));
+    return {accepted:true,reason:'Prowadzisz chwyt. Ciężar i przeszkody ograniczają ruch rzeczy.'};
+  }
+  cancelActivity(){delete this.player.activity;}
   act(action:ActorAction):ActionResult{
-    const next=decodeCheckpoint(this.save()),result=executeAction(next,this.player.id,action);
+    const next=decodeCheckpoint(this.save()),result=requestAction(next,this.player.id,action);
     if(!result.accepted)return result;
     try{encodeCheckpoint(next);this.physics.reconcileThings(next.things);}
     catch(error){return {...result,accepted:false,reason:error instanceof Error?error.message:'Nie przyjęto czynności.'};}
@@ -75,13 +84,14 @@ export class Session {
       const previous=this.state.residents.map(r=>[r.position[0],r.position[2]]);
       this.physics.step(STEP,this.drives,this.state);
       this.state.seconds+=STEP;this.state.tick++;this.accumulator-=STEP;count++;
+      advanceActivities(this.state,STEP);
       this.state.residents.forEach((r,i)=>{
         const desire=this.drives.get(r.id)?.velocity??[0,0,0];
         const moved=Math.hypot(r.position[0]-previous[i][0],r.position[2]-previous[i][1]);
         r.blockedFor=Math.hypot(desire[0],desire[2])>.2&&moved/STEP<.12?r.blockedFor+STEP:0;
         const target=r.known.find(p=>p.id===r.intent.targetId);
-        if(r.holding&&r.intent.goal==='carry-home'&&target&&Math.hypot(r.position[0]-target.position[0],r.position[2]-target.position[2])<.6&&Math.hypot(...r.velocity)<.45)
-          this.physics.release(r.id,this.state);
+        if(r.holding&&(r.intent.goal==='carry-home'||r.intent.goal==='store')&&target&&Math.hypot(r.position[0]-target.position[0],r.position[2]-target.position[2])<(r.intent.goal==='store'?1.25:.6)&&Math.hypot(...r.velocity)<.45)
+          this.physics.release(r.id,this.state,r.intent.goal==='store'?'Odkładam porcję do zapasu.':'Odłożył własną torbę');
       });
       this.thinking+=STEP;
       if(this.thinking+1e-10>=THINK){this.drives=stepLife(this.state,this.thinking);this.physics.reconcileThings(this.state.things);this.thinking=0;}

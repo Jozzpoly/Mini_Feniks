@@ -57,8 +57,10 @@ describe('authored source and lived material continuity', () => {
     const session=await createSession(state,heightAt);
     try{
       expect(session.act({kind:'gather',targetId:site.id}).accepted).toBe(true);
+      for(let i=0;i<30;i++)session.advance(.1);
       const portion=session.player.holding!,plant=session.state.source.forms!.find(f=>f.uses.some(u=>u.id===site.id))!;
       expect(session.act({kind:'eat',targetId:portion}).accepted).toBe(true);
+      for(let i=0;i<40;i++)session.advance(.1);
       const remaining=session.state.resources!.find(s=>s.id===site.id)!.units,original=structuredClone(plant);
       expect(session.author({kind:'transform',formId:plant.id,position:[-40,plant.position[1],40]}).accepted).toBe(true);
       expect(session.state.source.resourceSites!.find(s=>s.id===site.id)!.position[0]).toBeCloseTo(-39.35);

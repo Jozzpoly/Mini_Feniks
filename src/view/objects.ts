@@ -86,7 +86,9 @@ export function poseHuman(rig: HumanRig, resident: Resident, seconds: number): v
   const q = new THREE.Quaternion().fromArray(resident.rotation); const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(q); rig.group.rotation.y = Math.atan2(forward.x, forward.z);
   rig.pelvis.position.y = .76 - p * .34; rig.torso.rotation.x = p * .12;
   rig.leftLeg.rotation.x = stride - p * 1.12; rig.rightLeg.rotation.x = -stride - p * 1.12;
-  rig.leftArm.rotation.x = -stride * .65 - (resident.holding ? .7 : p * .22); rig.rightArm.rotation.x = stride * .65 - (resident.holding ? .7 : p * .22);
+  const working=resident.activity,hand=resident.holding?1.25+Math.max(-.3,Math.min(.65,resident.carryHeight??0))*1.2:p*.22;
+  const gesture=working?.kind==='eat'?.22*Math.sin(working.elapsed*3):working?.kind==='gather'?.65+.12*Math.sin(working.elapsed*7):0;
+  rig.leftArm.rotation.x = -stride * .65-hand-gesture; rig.rightArm.rotation.x = stride * .65-hand-gesture;
 }
 export function createThing(thing: Thing): THREE.Group {
   const group = new THREE.Group(); group.userData = { id: thing.id, kind: 'thing' };
@@ -97,6 +99,11 @@ export function createThing(thing: Thing): THREE.Group {
     const handle = new THREE.Mesh(new THREE.TorusGeometry(thing.size[0] * .22, .022, 4, 10, Math.PI), new THREE.MeshStandardMaterial({ color: '#493827' })); handle.position.y = thing.size[1] / 2; group.add(handle);
   } else if (thing.kind === 'food') {
     const loaf = new THREE.Mesh(new THREE.SphereGeometry(1, 10, 7), new THREE.MeshStandardMaterial({ color: thing.foodFlavor==='apple'?'#a96037':thing.foodFlavor==='berries'?'#544252':'#b69159', roughness: 1 })); loaf.scale.set(thing.size[0] / 2, thing.size[1] / 2, thing.size[2] / 2); loaf.castShadow = true; group.add(loaf);
+  } else if(thing.kind==='material'){
+    const body=new THREE.Mesh(new THREE.BoxGeometry(...thing.size),material(thing.material??'timber'));body.castShadow=body.receiveShadow=true;group.add(body);
+    if(thing.material==='timber')for(const offset of [-.3,0,.3]){
+      const grain=box(thing.size[0]*.94,.0015,.0025,'#6b5035');grain.position.set(0,thing.size[1]/2+.001,thing.size[2]*offset);group.add(grain);
+    }
   } else group.add(box(...thing.size, '#8b6847'));
   return group;
 }

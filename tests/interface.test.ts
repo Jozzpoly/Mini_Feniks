@@ -30,6 +30,14 @@ describe('usable world interface',()=>{
    expect(modes.at(-1)).toBe('observe');expect(focus).toHaveBeenLastCalledWith(bag.position,5,bag.id);
   }finally{ui.dispose();session.dispose();dom.window.close();}
  });
+ it('clicking another person opens observation after the play inspector was reduced',async()=>{
+  const {session,ui,dom,view}=await setup();const modes:string[]=[];view.setMode=mode=>{modes.push(mode);};
+  try{
+   const resident=session.state.residents.find(r=>r.control!=='player')!;view.pick=()=>({kind:'resident',id:resident.id,position:resident.position});
+   for(const type of ['pointerdown','pointerup'])view.renderer.domElement.dispatchEvent(new dom.window.MouseEvent(type,{button:0,clientX:4,clientY:4}));
+   expect(modes.at(-1)).toBe('observe');expect(document.querySelector('.person-details h2')!.textContent).toBe(resident.name);
+  }finally{ui.dispose();session.dispose();dom.window.close();}
+ });
  it('pause stops actual life and the person inspector shows their own reason',async()=>{
   const {session,ui,dom}=await setup();
   const before=session.state.seconds;
@@ -42,7 +50,7 @@ describe('usable world interface',()=>{
  it('save stores the actual completed world checkpoint',async()=>{
   const {session,ui,dom}=await setup();session.advance(.1);
   document.querySelector<HTMLButtonElement>('[data-action="save"]')!.click();
-  const saved=JSON.parse(localStorage.getItem('mini-feniks:checkpoint')!);
+  const saved=JSON.parse(localStorage.getItem('mini-feniks:checkpoint:living-04')!);
   expect(saved.tick).toBe(session.state.tick);expect(saved.residents[0].holding).toBe(session.state.residents[0].holding);
   ui.dispose();session.dispose();dom.window.close();
  });
@@ -66,7 +74,7 @@ describe('usable world interface',()=>{
   const {session,ui,dom}=await setup(),before=session.state,snapshot=session.save();
   const bad=JSON.parse(snapshot);bad.residents=[];bad.events=[];
   bad.things.forEach((t:{heldBy:string|null})=>{t.heldBy=null;});
-  localStorage.setItem('mini-feniks:checkpoint',JSON.stringify(bad));
+  localStorage.setItem('mini-feniks:checkpoint:living-04',JSON.stringify(bad));
   document.querySelector<HTMLButtonElement>('[data-action="load"]')!.click();
   await vi.waitFor(()=>expect(document.querySelector('.toast')!.textContent).toContain('checkpoint'));
   expect(session.state).toBe(before);expect(session.save()).toBe(snapshot);expect(session.paused).toBe(false);
@@ -117,19 +125,59 @@ describe('usable world interface',()=>{
    expect(session.state.source.retiredIds).toContain(authored.id);
   }finally{ui.dispose();session.dispose();dom.window.close();}
  });
- it('E gathers a real finite portion and E eats that held portion without refilling the plant',async()=>{
+ it('E starts timed gathering then eating without refilling the plant',async()=>{
   const {session,ui,dom}=await setup(state=>{state.residents.find(r=>r.control==='player')!.position=[-10.9,heightAt(-10.9,8.65)+.9,9.4];});
   try{
    const units=session.state.resources!.find(s=>s.id==='resource:apple')!.units;
    window.dispatchEvent(new dom.window.KeyboardEvent('keydown',{code:'KeyE'}));
+   expect(session.player.activity?.kind).toBe('gather');expect(session.player.holding).toBeNull();
+   const gatherDuration=session.player.activity!.duration;for(let t=0;t<gatherDuration+.2;t+=.1)session.advance(.1);ui.update();
    const held=session.player.holding;expect(held).not.toBeNull();expect(session.state.things.find(t=>t.id===held)!.heldBy).toBe(session.player.id);
    expect(session.state.resources!.find(s=>s.id==='resource:apple')!.units).toBe(units-1);
    const hunger=session.player.hunger;window.dispatchEvent(new dom.window.KeyboardEvent('keydown',{code:'KeyE'}));
+   expect(session.player.activity?.kind).toBe('eat');expect(session.state.things.find(t=>t.id===held)!.consumed).toBe(false);
+   const eatDuration=session.player.activity!.duration;for(let t=0;t<eatDuration+.2;t+=.1)session.advance(.1);ui.update();
    expect(session.player.holding).toBeNull();expect(session.state.things.find(t=>t.id===held)!.consumed).toBe(true);expect(session.player.hunger).toBeLessThan(hunger);
    expect(session.state.resources!.find(s=>s.id==='resource:apple')!.units).toBe(units-1);
   }finally{ui.dispose();session.dispose();dom.window.close();}
  });
 
+ it('offers pickup and eating separately for reachable food',async()=>{
+  const {session,ui,dom}=await setup(state=>{
+   const p=state.residents.find(r=>r.control==='player')!,food=state.things.find(t=>t.kind==='food')!;
+   p.position=[30,heightAt(30,30)+.9,30];food.position=[30,heightAt(30,30)+.3,30.5];food.heldBy=null;
+  });
+  try{
+   const buttons=[...document.querySelectorAll<HTMLButtonElement>('[data-interact]')];
+   const pickup=buttons.find(b=>b.textContent?.includes('Podnieś:'));
+   expect(pickup).toBeDefined();expect(buttons.some(b=>b.textContent?.includes('Zjedz:'))).toBe(true);
+   pickup!.click();expect(session.player.holding).not.toBeNull();
+   expect(document.querySelector('[data-carry="raise"]')).not.toBeNull();
+  }finally{ui.dispose();session.dispose();dom.window.close();}
+ });
+ it('shows the selected residents own continuing concern',async()=>{
+  const {session,ui,dom}=await setup(state=>Object.assign(state.residents[0],{concern:{kind:'provision',placeId:'food',desiredUnits:2,startedAt:0,reason:'Przyniosę zapas do domu.',satisfied:false}}));
+  try{
+   document.querySelector<HTMLButtonElement>('[data-action="observe"]')!.click();
+   document.querySelector<HTMLButtonElement>(`[data-person="${session.state.residents[0].id}"]`)!.click();
+   expect(document.querySelector('.person-details')!.textContent).toContain('Przyniosę zapas do domu.');
+  }finally{ui.dispose();session.dispose();dom.window.close();}
+ });
+ it('prepares a compact gameplay download and reports preparation failures honestly',async()=>{
+  const {session,ui,dom}=await setup();
+  const anchor=vi.spyOn(dom.window.HTMLAnchorElement.prototype,'click').mockImplementation(()=>{});
+  const urls=vi.spyOn(URL,'createObjectURL').mockReturnValue('blob:play-report');
+  try{
+   document.querySelector<HTMLButtonElement>('[data-action="play-report"]')!.click();
+   expect(anchor).toHaveBeenCalledOnce();
+   const text=await (urls.mock.calls[0][0] as Blob).text(),report=JSON.parse(text);
+   expect(report.player.id).toBe(session.player.id);expect(report).not.toHaveProperty('source');
+   expect(document.querySelector('.toast')!.textContent).toContain('Przygotowano ślad gry');
+   urls.mockImplementation(()=>{throw new Error('download unavailable');});
+   document.querySelector<HTMLButtonElement>('[data-action="play-report"]')!.click();
+   expect(document.querySelector('.toast')!.textContent).toContain('Nie udało się');
+  }finally{urls.mockRestore();anchor.mockRestore();ui.dispose();session.dispose();dom.window.close();}
+ });
  it('an empty numeric field cannot accidentally become a committed zero coordinate',async()=>{
   const {session,ui,dom}=await setup();
   try{

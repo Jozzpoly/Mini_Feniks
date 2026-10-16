@@ -1,5 +1,5 @@
 import './ui/style.css';
-import { readStartingWorld } from './world/startup';
+import { readLivingWorld } from './world/startup';
 import { heightAt } from './world/geography';
 import { createSession } from './session';
 import { createView } from './view';
@@ -10,7 +10,7 @@ async function start(){
   root.innerHTML='<div id="land" aria-label="Kraina w trzech wymiarach"></div><div id="interface"></div><div class="loading"><strong>Otwieramy Żywą Krainę</strong><p>Przygotowanie ziemi i zachowanej historii potrwa chwilę.</p></div>';
   // Let the loading view paint before compiling the shared physical terrain.
   await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())));
-  const state=readStartingWorld(localStorage),session=await createSession(state,heightAt);
+  const state=readLivingWorld(localStorage),session=await createSession(state,heightAt);
   const view=createView(root.querySelector<HTMLElement>('#land')!,session.state.source,(x,z)=>session.physics.terrainHeightAt(x,z));
   view.update(session.state);
   const ui=createInterface(root.querySelector<HTMLElement>('#interface')!,session,view);

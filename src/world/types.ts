@@ -24,19 +24,23 @@ export interface RegionSource {
 }
 export interface Thing {
   foodFlavor?: 'bread' | 'berries' | 'apple';
-  id: string; label: string; kind: 'bag' | 'food' | 'stool'; size: Vec3; mass: number;
+  material?: Material;
+  id: string; label: string; kind: 'bag' | 'food' | 'stool' | 'material'; size: Vec3; mass: number;
   position: Vec3; rotation: Quat; velocity: Vec3; angularVelocity: Vec3;
   heldBy: string | null; consumed: boolean;
 }
 export interface KnownPlace { id: string; kind: Place['kind']; position: Vec3; seenAt: number; occupiedBy: string | null; available?: boolean; }
 export interface KnownPart { id: string; position: Vec3; size: Vec3; yaw: number; role: PartSource['role']; seenAt: number; present?: boolean; }
-export interface KnownThing { id: string; kind: Thing['kind']; position: Vec3; seenAt: number; available: boolean; }
+export interface KnownThing { id: string; kind: Thing['kind']; position: Vec3; seenAt: number; available: boolean; present?:boolean; size?:Vec3; rotation?:Quat; }
 export interface KnownResource { id: string; position: Vec3; seenAt: number; available: boolean; }
 export interface KnownPerson { id: string; position: Vec3; seenAt: number; }
 export interface Memory { time: number; kind: 'saw' | 'arrived' | 'blocked' | 'rested' | 'ate' | 'placed' | 'picked' | 'gathered' | 'met'; target: string; detail: string; }
-export type Goal = 'carry-home' | 'rest' | 'eat' | 'wander' | 'quiet' | 'gather' | 'meet';
+export type Goal = 'carry-home' | 'rest' | 'eat' | 'wander' | 'quiet' | 'gather' | 'meet' | 'store' | 'fetch';
 export interface Intent { goal: Goal; targetId: string | null; reason: string; chosenAt: number; }
 export interface Resident {
+  carryYaw?: number; carryHeight?: number;
+  activity?: {kind:'eat'|'gather';targetId:string;elapsed:number;duration:number;startedAt:number;origin:Vec3};
+  concern?: {kind:'provision';placeId:string;desiredUnits:number;startedAt:number;reason:string;satisfied:boolean};
   control?: 'player' | 'resident'; knownResources?: KnownResource[]; knownPeople?: KnownPerson[];
   id: string; name: string; position: Vec3; rotation: Quat; velocity: Vec3; angularVelocity: Vec3;
   fatigue: number; hunger: number; sociability: number; curiosity: number;

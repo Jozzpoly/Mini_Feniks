@@ -1,5 +1,8 @@
 import type { Drive, Intent, KnownPart, Memory, PartSource, Resident, Vec3, WorldState } from '../world/types';
 import { executeAction } from '../actors/actions';
+import { requestAction } from '../actors/activities';
+import { concernIntent } from './concerns';
+import {occluded,solidBounds} from '../actors/spatial';
 
 const SIGHT = 18;
 const SPEED = 1.2;
@@ -31,7 +34,7 @@ function visible(state:WorldState,resident:Resident,p:Vec3,omit?:string):boolean
   if(spatialDistance(resident.position,p)>SIGHT)return false;
   const eye:Vec3=[resident.position[0],resident.position[1]+.65,resident.position[2]];
   const witness:Vec3=[p[0],p[1]+.65,p[2]];
-  return !state.source.home.parts.some(part=>part.solid&&part.id!==omit&&hitBox(eye,witness,part));
+  return !occluded(state,eye,witness,[omit??'',resident.holding??'']);
 }
 function remember(state:WorldState,resident:Resident,kind:Memory['kind'],target:string,detail:string):void {
   const last=[...resident.memories].reverse().find(m=>m.kind===kind&&m.target===target);
@@ -78,20 +81,20 @@ export function observeResident(state:WorldState,resident:Resident):void {
   }
   const witnessedThings=new Set<string>();
   for(const thing of state.things){
-    if(!visible(state,resident,thing.position))continue;
+    if(!visible(state,resident,thing.position,thing.id))continue;
     witnessedThings.add(thing.id);
     const available=!thing.consumed&&thing.heldBy===null;
     const known=resident.knownThings.find(k=>k.id===thing.id);
-    if(!known){resident.knownThings.push({id:thing.id,kind:thing.kind,position:copy(thing.position),seenAt:state.seconds,available});remember(state,resident,'saw',thing.id,`Widzę ${thing.label}${available?' dostępny.':' zajęty lub zużyty.'}`);}
+    if(!known){resident.knownThings.push({id:thing.id,kind:thing.kind,position:copy(thing.position),size:copy(thing.size),rotation:[...thing.rotation],seenAt:state.seconds,available,present:!thing.consumed});remember(state,resident,'saw',thing.id,`Widzę ${thing.label}${available?' dostępny.':' zajęty lub zużyty.'}`);}
     else {
       if(known.available!==available||distance(known.position,thing.position)>.4)remember(state,resident,'saw',thing.id,available?'Rzecz jest dostępna.':'Rzecz jest zajęta lub zużyta.');
-      known.position=copy(thing.position);known.available=available;known.seenAt=state.seconds;
+      known.position=copy(thing.position);known.size=copy(thing.size);known.rotation=[...thing.rotation];known.available=available;known.present=!thing.consumed;known.seenAt=state.seconds;
     }
   }
   // An empty, visible remembered spot is a witness too. A remote removal is not.
   for(const known of resident.knownThings){
-    if(known.available&&!witnessedThings.has(known.id)&&visible(state,resident,known.position)){
-      known.available=false;known.seenAt=state.seconds;remember(state,resident,'saw',known.id,'Nie ma już rzeczy w znanym miejscu.');
+    if((known.available||known.present)&&!witnessedThings.has(known.id)&&visible(state,resident,known.position,known.id)){
+      known.available=false;known.present=false;known.seenAt=state.seconds;remember(state,resident,'saw',known.id,'Nie ma już rzeczy w znanym miejscu.');
     }
   }
   resident.knownResources??=[];resident.knownPeople??=[];
@@ -118,12 +121,19 @@ export function observeResident(state:WorldState,resident:Resident):void {
   }
 }
 
-function obstacles(resident:Resident):KnownPart[] {return resident.knownParts.filter(p=>p.present!==false&&(p.role==='wall'||p.role==='beam')&&p.position[1]-p.size[1]/2<resident.position[1]+1.6&&p.position[1]+p.size[1]/2>resident.position[1]+.1);}
+function obstacles(resident:Resident):KnownPart[] {
+ const half=.9-.38*resident.posture,bottom=resident.position[1]-half+.12,top=resident.position[1]+half;
+ const fixed=resident.knownParts.filter(p=>p.present!==false&&(p.role==='wall'||p.role==='beam')&&p.position[1]-p.size[1]/2<top&&p.position[1]+p.size[1]/2>bottom);
+ const loose:KnownPart[]=resident.knownThings.filter(t=>t.kind!=='food'&&t.id!==resident.holding&&t.present!==false&&(t.available||t.present===true)&&t.size).map(t=>({id:t.id,...solidBounds({position:t.position,size:t.size!,rotation:t.rotation}),yaw:0,role:'beam' as const,seenAt:t.seenAt})).filter(t=>t.position[1]+t.size[1]/2>bottom&&t.position[1]-t.size[1]/2<top);
+ return [...fixed,...loose];
+}
 /** Small visibility graph over PRIVATE witnessed/familiar walls; targets stay in private coordinates. */
 function route(resident:Resident,target:Vec3):Vec3|null {
   const parts=obstacles(resident), height=resident.position[1]+.9;
   const start:Vec3=[resident.position[0],height,resident.position[2]],end:Vec3=[target[0],height,target[2]];
-  const clear=(a:Vec3,b:Vec3)=>!parts.some(p=>hitBox(a,b,p,.38));
+  // Vertical body overlap was already filtered. Route on each remaining footprint,
+  // including blocks below eye height; the solver remains the final contact authority.
+  const clear=(a:Vec3,b:Vec3)=>!parts.some(p=>hitBox([a[0],p.position[1],a[2]],[b[0],p.position[1],b[2]],p,.38));
   if(clear(start,end))return target;
   const points:Vec3[]=[start,end];
   for(const part of parts){
@@ -170,13 +180,16 @@ function bestPlace(state:WorldState,resident:Resident,kind:'rest'|'food'|'lookou
 function foodApproach(state:WorldState,resident:Resident,foodId:string){
   const food=resident.knownThings.find(k=>k.id===foodId&&k.kind==='food');
   if(!food)return undefined;
-  return knownPlaces(state,resident,'food').filter(p=>distance(p.position,food.position)<1.8)
+  const familiar=knownPlaces(state,resident,'food').filter(p=>distance(p.position,food.position)<1.8)
     .sort((a,b)=>distance(a.position,food.position)-distance(b.position,food.position))[0];
+  if(familiar)return familiar;
+  const dx=resident.position[0]-food.position[0],dz=resident.position[2]-food.position[2],length=Math.hypot(dx,dz)||1;
+  return {id:food.id,kind:'food' as const,position:[food.position[0]+dx/length*.9,food.position[1],food.position[2]+dz/length*.9] as Vec3,seenAt:food.seenAt,occupiedBy:null};
 }
 function intentTarget(state:WorldState,resident:Resident,intent=resident.intent):Vec3|null {
   if(!intent.targetId)return null;
   if(intent.goal==='eat'&&resident.holding===intent.targetId)return resident.position;
-  if(intent.goal==='eat')return foodApproach(state,resident,intent.targetId)?.position??null;
+  if(intent.goal==='eat'||intent.goal==='fetch')return foodApproach(state,resident,intent.targetId)?.position??null;
   if(intent.goal==='gather')return resident.knownResources?.find(k=>k.id===intent.targetId)?.position??null;
   if(intent.goal==='meet')return resident.knownPeople?.find(k=>k.id===intent.targetId)?.position??null;
   return resident.known.find(k=>k.id===intent.targetId)?.position??resident.knownThings.find(k=>k.id===intent.targetId)?.position??null;
@@ -184,16 +197,20 @@ function intentTarget(state:WorldState,resident:Resident,intent=resident.intent)
 /** A proposal from needs, preferences and private witnesses, never a scripted phase. */
 export function chooseIntent(state:WorldState,resident:Resident):Intent {
   const current=resident.intent;
+  const personal=concernIntent(state,resident);
   const heldFood=state.things.find(t=>t.id===resident.holding&&t.heldBy===resident.id&&t.kind==='food'&&!t.consumed);
   const knownTarget=resident.known.find(k=>k.id===current.targetId),occupied=knownTarget?.occupiedBy;
   const missingFood=current.goal==='eat'&&current.targetId!==heldFood?.id&&(!resident.knownThings.some(k=>k.id===current.targetId&&k.available)||!current.targetId||!foodApproach(state,resident,current.targetId));
-  const invalidCarry=current.goal==='carry-home'&&!resident.holding;
-  const missingResource=current.goal==='gather'&&!resident.knownResources?.some(k=>k.id===current.targetId&&k.available);
+  const invalidCarry=(current.goal==='carry-home'||current.goal==='store')&&!resident.holding;
+  const missingResource=current.goal==='gather'&&(!!resident.holding||!resident.knownResources?.some(k=>k.id===current.targetId&&k.available));
+  const invalidFetch=current.goal==='fetch'&&(!!resident.holding||!resident.knownThings.some(t=>t.id===current.targetId&&t.available));
   const missingPerson=current.goal==='meet'&&!resident.knownPeople?.some(k=>k.id===current.targetId&&state.seconds-k.seenAt<20);
-  const invalid=!!occupied||knownTarget?.available===false||missingFood||invalidCarry||missingResource||missingPerson||(current.goal!=='quiet'&&!current.targetId)||!!(current.targetId&&recentlyBlocked(state,resident,current.targetId));
+  const invalid=!!occupied||knownTarget?.available===false||missingFood||invalidCarry||invalidFetch||missingResource||missingPerson||(current.goal!=='quiet'&&!current.targetId)||!!(current.targetId&&recentlyBlocked(state,resident,current.targetId));
   const urgent=resident.fatigue>.92&&current.goal!=='rest'&&current.goal!=='carry-home';
   const make=(goal:Intent['goal'],targetId:string|null,reason:string):Intent=>({goal,targetId,reason,chosenAt:state.seconds});
-  if(heldFood)return make('eat',heldFood.id,'Mam w dłoni zdobytą porcję. Zjem ją, zanim ruszę dalej.');
+  if(heldFood&&resident.hunger>.54)return make('eat',heldFood.id,'Jestem głodny i trzymam dostępną porcję.');
+  if(heldFood&&personal)return personal;
+  if(heldFood)return make('quiet',null,'Trzymam porcję na później; nie znam teraz miejsca, w którym chcę ją odłożyć.');
   if(!invalid&&!urgent&&state.seconds-current.chosenAt<HOLD)return current;
   if(current.goal==='rest'&&!invalid&&resident.fatigue>.25&&state.seconds<resident.restUntil)return current;
   if(resident.holding){const put=bestPlace(state,resident,'put');if(put)return make('carry-home',put.id,'Niosę własną torbę; chcę odłożyć ciężar w znanym miejscu.');}
@@ -205,6 +222,7 @@ export function chooseIntent(state:WorldState,resident:Resident):Intent {
       .sort((a,b)=>distance(resident.position,a.position)-distance(resident.position,b.position))[0];
     if(resource)return make('gather',resource.id,'Odczuwam głód; widziałem dostępne owoce. Spróbuję je zebrać.');
   }
+  if(personal)return personal;
   if(resident.sociability>.6&&resident.fatigue<.65){
     const other=resident.knownPeople?.filter(p=>state.seconds-p.seenAt<20&&!recentlyBlocked(state,resident,p.id)&&!resident.memories.some(m=>m.kind==='met'&&m.target===p.id&&state.seconds-m.time<45)&&route(resident,p.position)!==null)
       .sort((a,b)=>distance(resident.position,a.position)-distance(resident.position,b.position))[0];
@@ -224,14 +242,15 @@ export function stepLife(state:WorldState,dt:number):Map<string,Drive> {
   if(!Number.isFinite(dt)||dt<0)throw new RangeError('Life step requires a finite nonnegative dt.');
   for(const resident of state.residents){
     observeResident(state,resident);
-    resident.hunger=clamp(resident.hunger+dt*.0018);
-    resident.fatigue=clamp(resident.fatigue+dt*(.0008+Math.min(1.2,Math.hypot(resident.velocity[0],resident.velocity[2]))*.003+(resident.holding?.0012:0)));
+    resident.hunger=clamp(resident.hunger+dt*.0006);
+    resident.fatigue=clamp(resident.fatigue+dt*(.0002+Math.min(1.2,Math.hypot(resident.velocity[0],resident.velocity[2]))*.0008+(resident.holding?.0003:0)));
     resident.curiosity=clamp(resident.curiosity+dt*.0009);resident.sociability=clamp(resident.sociability+dt*.0007);
     if(resident.control==='player'){
       const place=resident.intent.goal==='rest'?state.source.places.find(p=>p.id===resident.intent.targetId&&p.kind==='rest'):undefined;
-      if(place&&spatialDistance(resident.position,place.position)<=1.8&&resident.posture>.8&&Math.hypot(...resident.velocity)<.18&&!resident.holding){resident.fatigue=clamp(resident.fatigue-dt*.024);remember(state,resident,'rested',place.id,'Odpoczywam w spokojnej niskiej posturze.');}
+      if(place&&spatialDistance(resident.position,place.position)<=1.8&&resident.posture>.8&&Math.hypot(...resident.velocity)<.18&&!resident.holding){resident.fatigue=clamp(resident.fatigue-dt*.012);remember(state,resident,'rested',place.id,'Odpoczywam w spokojnej niskiej posturze.');}
       continue;
     }
+    if(resident.activity){drives.set(resident.id,{velocity:[0,0,0],posture:0});continue;}
     if(resident.blockedFor>=3&&resident.intent.targetId){
       event(state,resident,'blocked',resident.intent.targetId,'Dojście mnie zatrzymało. Spróbuję innego znanego miejsca albo poczekam.');
       resident.blockedFor=0;resident.reconsiderAt=state.seconds;
@@ -240,7 +259,7 @@ export function stepLife(state:WorldState,dt:number):Map<string,Drive> {
     if(proposed.goal!==resident.intent.goal||proposed.targetId!==resident.intent.targetId){resident.intent=proposed;resident.reconsiderAt=state.seconds+HOLD;}
     else if(state.seconds-resident.intent.chosenAt>=HOLD)resident.intent={...proposed,chosenAt:resident.intent.chosenAt};
     const target=intentTarget(state,resident);
-    const near=target&&distance(resident.position,target)<=(resident.intent.goal==='eat'?MEAL_ARRIVAL:resident.intent.goal==='meet'?2.6:ARRIVAL);
+    const near=target&&distance(resident.position,target)<=(resident.intent.goal==='eat'||resident.intent.goal==='fetch'?MEAL_ARRIVAL:resident.intent.goal==='store'?1.2:resident.intent.goal==='meet'?2.6:ARRIVAL);
     let drive:Drive={velocity:[0,0,0],posture:0};
     if(near&&resident.intent.targetId){
       const arrivedId=resident.intent.targetId;
@@ -251,25 +270,28 @@ export function stepLife(state:WorldState,dt:number):Map<string,Drive> {
         if(access.accepted)drive.posture=1;
         else{remember(state,resident,'blocked',arrivedId,access.reason);resident.intent=chooseIntent(state,resident);}
         if(access.accepted&&resident.posture>.8&&Math.hypot(...resident.velocity)<.18){
-          resident.fatigue=clamp(resident.fatigue-dt*.024);resident.restUntil=Math.max(resident.restUntil,state.seconds+4);
+          resident.fatigue=clamp(resident.fatigue-dt*.012);resident.restUntil=Math.max(resident.restUntil,state.seconds+4);
           resident.intent.reason='Odpoczywam w spokojnej niskiej posturze przy znanym miejscu i odzyskuję siły.';
           remember(state,resident,'rested',arrivedId,'Odpoczywam w spokojnej niskiej posturze.');
         }
+      }
+      if(arrivedGoal==='fetch'){
+        const action=executeAction(state,resident.id,{kind:'pickup',targetId:arrivedId});
+        if(!action.accepted)remember(state,resident,'blocked',arrivedId,action.reason);
+        resident.intent=chooseIntent(state,resident);
       }
       if(arrivedGoal==='eat'){
         const food=state.things.find(t=>t.id===resident.intent.targetId);
         const known=resident.knownThings.find(k=>k.id===resident.intent.targetId);
         const approach=foodApproach(state,resident,arrivedId);
         if(food&&(food.heldBy===resident.id&&resident.holding===food.id||known?.available&&approach&&distance(resident.position,approach.position)<=MEAL_ARRIVAL&&spatialDistance(resident.position,food.position)<=FOOD_REACH&&visible(state,resident,food.position))){
-          const action=executeAction(state,resident.id,{kind:'eat',targetId:food.id});
-          if(action.accepted)resident.intent=chooseIntent(state,resident);
-          else{remember(state,resident,'blocked',food.id,action.reason);resident.intent=chooseIntent(state,resident);}
+          const action=requestAction(state,resident.id,{kind:'eat',targetId:food.id});
+          if(!action.accepted){remember(state,resident,'blocked',food.id,action.reason);resident.intent=chooseIntent(state,resident);}
         }
       }
       if(arrivedGoal==='gather'){
-        const id=resident.intent.targetId!,action=executeAction(state,resident.id,{kind:'gather',targetId:id});
+        const id=resident.intent.targetId!,action=requestAction(state,resident.id,{kind:'gather',targetId:id});
         if(!action.accepted)remember(state,resident,'blocked',id,action.reason);
-        resident.intent=chooseIntent(state,resident);
       }
       if(arrivedGoal==='meet'){
         const id=resident.intent.targetId!,action=executeAction(state,resident.id,{kind:'greet',targetId:id});
@@ -278,7 +300,15 @@ export function stepLife(state:WorldState,dt:number):Map<string,Drive> {
       }
       if(arrivedGoal==='wander'){resident.curiosity=clamp(resident.curiosity-.22);resident.intent={goal:'quiet',targetId:null,reason:'To już wybrane miejsce. Chcę przez chwilę popatrzeć w ciszy.',chosenAt:state.seconds};}
     }else if(target){
-      const waypoint=route(resident,entranceWaypoint(resident,target));
+      // A deposit accepts a neighbourhood: a loose bag at its centre must not
+      // make the whole place unreachable. Approach its near edge, then let
+      // actual body distance/speed authorize release in Session.
+      let approach=target;
+      if(resident.intent.goal==='store'){
+        const dx=resident.position[0]-target[0],dz=resident.position[2]-target[2],length=Math.hypot(dx,dz);
+        if(length>1.05)approach=[target[0]+dx/length*1.05,target[1],target[2]+dz/length*1.05];
+      }
+      const waypoint=route(resident,entranceWaypoint(resident,approach));
       if(waypoint){const dx=waypoint[0]-resident.position[0],dz=waypoint[2]-resident.position[2],length=Math.hypot(dx,dz);if(length>.05)drive.velocity=[dx/length*SPEED,0,dz/length*SPEED];}
       else {remember(state,resident,'blocked',resident.intent.targetId!,'Nie znam bezpiecznego dojścia.');resident.intent=chooseIntent(state,resident);}
     }

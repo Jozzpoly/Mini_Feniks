@@ -7,7 +7,8 @@ import type { AuthoringOperation } from '../world/authoring';
 import { actionSight } from '../actors/actions';
 import { createFormSource, formForPart, worldToFormPose } from '../world/forms';
 
-const STORAGE='mini-feniks:checkpoint';
+import { STORAGE_KEY } from '../world/startup';
+import { createPlayReport } from './play-report';
 const escape=(s:string)=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!));
 const icon=(path:string)=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${path}"/></svg>`;
 const pauseIcon=icon('M8 5v14M16 5v14');
@@ -23,7 +24,7 @@ export function createInterface(container:HTMLElement,session:Session,view:World
   let draft:AuthoringOperation|null=null,placing:FormSource['kind']|null=null,pausedBeforeAuthor=false,tool:'translate'|'rotate'='translate';
   let crouched=session.player.posture>.5,toastTimer:number|undefined,creationSerial=0;
   const held=new Set<string>(),forward=new THREE.Vector3(),right=new THREE.Vector3();
-  container.innerHTML=`<header class="topbar"><div class="wordmark"><strong>MiniFeniks</strong><span>Żywa Kraina</span></div><nav class="mode-switch" aria-label="Sposób uczestnictwa"><button data-action="play" class="active">Graj</button><button data-action="observe">Oglądaj</button><button data-action="author">Twórz</button></nav><div class="world-actions"><button data-action="home" title="Ogląd osady">${homeIcon}<span>Osada</span></button><button data-action="realm" class="less">Kraina</button><button data-action="pause">${pauseIcon}<span>Pauza</span></button><details class="save-menu"><summary>Zapis</summary><div><button data-action="save">Zapisz</button><button data-action="load">Wczytaj</button><button data-action="export">Pobierz plik</button><button data-action="import">Otwórz plik</button></div></details><input type="file" accept="application/json,.json" data-import hidden></div></header><aside class="inspector"><div class="people" aria-label="Mieszkańcy"></div><div class="person-details"></div><div class="author-details" hidden></div></aside><div class="player-hud" aria-label="Twoja postać"></div><div class="interaction" aria-live="polite"></div><div class="touch-controls" aria-label="Sterowanie postacią"><button data-move="KeyW" aria-label="Idź naprzód">↑</button><div><button data-move="KeyA" aria-label="Idź w lewo">←</button><button data-move="KeyS" aria-label="Idź wstecz">↓</button><button data-move="KeyD" aria-label="Idź w prawo">→</button></div></div><footer><div class="hint"></div><div class="clock"><i></i><span class="time" aria-live="off"></span></div></footer><div class="toast" role="status" aria-live="polite"></div>`;
+  container.innerHTML=`<header class="topbar"><div class="wordmark"><strong>MiniFeniks</strong><span>Żywa Kraina</span></div><nav class="mode-switch" aria-label="Sposób uczestnictwa"><button data-action="play" class="active">Graj</button><button data-action="observe">Oglądaj</button><button data-action="author">Twórz</button></nav><div class="world-actions"><button data-action="home" title="Ogląd osady">${homeIcon}<span>Osada</span></button><button data-action="realm" class="less">Kraina</button><button data-action="pause">${pauseIcon}<span>Pauza</span></button><details class="save-menu"><summary>Zapis</summary><div><p class="save-note">Wersja badawcza — poprzedni zapis zachowany.</p><button data-action="save">Zapisz</button><button data-action="load">Wczytaj</button><button data-action="export">Pobierz plik</button><button data-action="import">Otwórz plik</button><button data-action="play-report">Ślad gry</button></div></details><input type="file" accept="application/json,.json" data-import hidden></div></header><aside class="inspector"><div class="people" aria-label="Mieszkańcy"></div><div class="person-details"></div><div class="author-details" hidden></div></aside><div class="player-hud" aria-label="Twoja postać"></div><div class="interaction" aria-live="polite"></div><div class="touch-controls" aria-label="Sterowanie postacią"><button data-move="KeyW" aria-label="Idź naprzód">↑</button><div><button data-move="KeyA" aria-label="Idź w lewo">←</button><button data-move="KeyS" aria-label="Idź wstecz">↓</button><button data-move="KeyD" aria-label="Idź w prawo">→</button></div></div><footer><div class="hint"></div><div class="clock"><i></i><span class="time" aria-live="off"></span></div></footer><div class="toast" role="status" aria-live="polite"></div>`;
   const query=<T extends HTMLElement=HTMLElement>(s:string)=>container.querySelector<T>(s)!;
   const button=(name:string)=>query<HTMLButtonElement>(`[data-action="${name}"]`);
   const notify=(text:string)=>{query('.toast').textContent=text;query('.toast').classList.add('show');if(toastTimer!==undefined)window.clearTimeout(toastTimer);toastTimer=window.setTimeout(()=>query('.toast').classList.remove('show'),4500);};
@@ -89,12 +90,13 @@ export function createInterface(container:HTMLElement,session:Session,view:World
     query('.people').querySelectorAll<HTMLButtonElement>('[data-person]').forEach(b=>b.onclick=()=>{selected=b.dataset.person!;selectedThing=null;if(mode==='author')changeMode('observe');updatePeople();update(true);const r=session.state.residents.find(r=>r.id===selected);if(r){if(mode==='play'&&r.id!==session.player.id)changeMode('observe');view.focus(r.position,9,r.id);}});
   };
   const candidates=():Array<{action:ActorAction;label:string;distance:number}>=>{
+    if(session.player.activity)return [];
     const p=session.player,near=(v:Vec3)=>Math.hypot(p.position[0]-v[0],p.position[1]-v[1],p.position[2]-v[2]),found:Array<{action:ActorAction;label:string;distance:number}>=[];
     const heldThing=session.state.things.find(t=>t.id===p.holding&&!t.consumed&&t.heldBy===p.id);
     if(heldThing?.kind==='food')found.push({action:{kind:'eat',targetId:heldThing.id},label:`Zjedz: ${heldThing.label}`,distance:-3});
     if(heldThing)found.push({action:{kind:'put-down'},label:'Odłóż trzymaną rzecz',distance:-2});
     if(!heldThing){
-      for(const thing of session.state.things)if(!thing.consumed&&!thing.heldBy&&near(thing.position)<1.8&&actionSight(session.state,p,thing.position))found.push({action:{kind:thing.kind==='food'?'eat':'pickup',targetId:thing.id},label:thing.kind==='food'?`Zjedz: ${thing.label}`:`Podnieś: ${thing.label}`,distance:near(thing.position)});
+      for(const thing of session.state.things)if(!thing.consumed&&!thing.heldBy&&near(thing.position)<1.8&&actionSight(session.state,p,thing.position,thing.id)){found.push({action:{kind:'pickup',targetId:thing.id},label:`Podnieś: ${thing.label}`,distance:near(thing.position)});if(thing.kind==='food')found.push({action:{kind:'eat',targetId:thing.id},label:`Zjedz: ${thing.label}`,distance:near(thing.position)+.01});}
       for(const site of session.state.source.resourceSites??[])if((session.state.resources?.find(s=>s.id===site.id)?.units??0)>0&&near(site.position)<1.8&&actionSight(session.state,p,site.position))found.push({action:{kind:'gather',targetId:site.id},label:`Zbierz: ${site.label}`,distance:near(site.position)});
       for(const place of session.state.source.places)if(place.kind==='rest'&&near(place.position)<1.8&&actionSight(session.state,p,place.position))found.push({action:{kind:'rest',targetId:place.id},label:'Odpocznij w tym miejscu',distance:near(place.position)+.5});
     }
@@ -102,6 +104,8 @@ export function createInterface(container:HTMLElement,session:Session,view:World
     return found.sort((a,b)=>a.distance-b.distance).slice(0,3);
   };
   const act=(action:ActorAction)=>{clearInput();if(session.paused){notify('Wznów czas, aby działać jako postać.');return;}const result=session.act(action);notify(result.reason);if(result.accepted&&action.kind==='rest'){crouched=true;session.setPlayerPosture(1);}view.update(session.state);update(true);};
+  const adjustCarry=(yaw:number,height:number)=>{const result=session.adjustCarry(yaw,height);if(!result.accepted)notify(result.reason);update(true);};
+  const cancelActivity=()=>{session.cancelActivity();notify('Przerwano czynność.');update(true);};
   const update=(force=false)=>{
     if(disposed)return;
     updateMovement();
@@ -110,13 +114,16 @@ export function createInterface(container:HTMLElement,session:Session,view:World
     query('.time').textContent=`${session.paused?'Czas zatrzymany':'Świat płynie'} · ${clock}`;query('.clock').classList.toggle('running',!session.paused);
     button('pause').innerHTML=`${pauseIcon}<span>${session.paused?'Wznów':'Pauza'}</span>`;button('pause').disabled=mode==='author';
     for(const m of modes)button(m).classList.toggle('active',mode===m);
-    query('.hint').textContent=mode==='play'?'WASD / strzałki · E działaj · C niska postura · przeciągnij, aby obrócić kamerę':mode==='author'?'Wybierz formę · uchwyty przesuwają i obracają · Esc anuluje podgląd':'Przeciągnij, aby obracać · kółko przybliża · prawy przycisk przesuwa';
+    query('.hint').textContent=mode==='play'?'WASD · E działaj · C postura · R / Shift R obróć rzecz · T / G podnieś / opuść · Esc przerwij':mode==='author'?'Wybierz formę · uchwyty przesuwają i obracają · Esc anuluje podgląd':'Przeciągnij, aby obracać · kółko przybliża · prawy przycisk przesuwa';
     query('.person-details').hidden=mode==='author';query('.author-details').hidden=mode!=='author';query('.people').hidden=mode==='author';
     query('.player-hud').hidden=mode!=='play';query('.interaction').hidden=mode!=='play';query('.touch-controls').hidden=mode!=='play';
-    const player=session.player;
-    query('.player-hud').innerHTML=`<strong>${escape(player.name)} <span>Ty w krainie</span></strong><div class="need"><span>Głód</span><div><i style="width:${Math.max(0,Math.min(100,player.hunger*100))}%"></i></div></div><div class="need"><span>Zmęczenie</span><div><i style="width:${Math.max(0,Math.min(100,player.fatigue*100))}%"></i></div></div><div class="held-thing">${player.holding?escape(session.state.things.find(t=>t.id===player.holding)?.label??'Trzymana rzecz'):crouched?'Niska postura · C, aby wstać':'Wolne ręce'}</div>`;
+    const player=session.player;query('.inspector').classList.toggle('inspect-open',selectedThing!==null);
+    const carryToolsOpen=query<HTMLDetailsElement>('.carry-tools')?.open??false;
+    query('.player-hud').innerHTML=`<strong>${escape(player.name)} <span>Ty w krainie</span></strong><div class="need"><span>Głód</span><div><i style="width:${Math.max(0,Math.min(100,player.hunger*100))}%"></i></div></div><div class="need"><span>Zmęczenie</span><div><i style="width:${Math.max(0,Math.min(100,player.fatigue*100))}%"></i></div></div><div class="held-thing">${player.holding?`Trzymasz: ${escape(session.state.things.find(t=>t.id===player.holding)?.label??'rzecz')}`:crouched?'Niska postura · C, aby wstać':'Wolne ręce'}</div>${player.holding?`<details class="carry-tools" ${carryToolsOpen?'open':''}><summary>Ułóż trzymaną rzecz</summary><div><button data-carry="rotate-left" title="Shift R">↶ Obróć</button><button data-carry="rotate-right" title="R">↷ Obróć</button><button data-carry="raise" title="T">↑ Unieś</button><button data-carry="lower" title="G">↓ Opuść</button></div></details>`:''}`;
+    query('.player-hud').querySelectorAll<HTMLButtonElement>('[data-carry]').forEach(b=>{b.disabled=session.paused;b.onclick=()=>{const op=b.dataset.carry;adjustCarry(op==='rotate-left'?-Math.PI/12:op==='rotate-right'?Math.PI/12:0,op==='raise'?.15:op==='lower'?-.15:0);};});
     if(mode==='play'){
-      const available=candidates();query('.interaction').innerHTML=available.length?available.map((c,i)=>`<button data-interact="${i}" ${session.paused?'disabled':''}>${i===0?'<kbd>E</kbd>':''}${escape(c.label)}</button>`).join(''):'<span>Podejdź do osoby, rzeczy lub rośliny, aby działać.</span>';
+      const available=candidates(),activity=player.activity;query('.interaction').innerHTML=activity?`<div class="activity-progress"><strong>${activity.kind==='eat'?'Jesz':'Zbierasz'}</strong><progress aria-label="Postęp czynności" max="${activity.duration}" value="${Math.min(activity.duration,activity.elapsed)}"></progress><span>${Math.max(0,activity.duration-activity.elapsed).toFixed(1)} s${session.paused?' · pauza':''}</span><button data-cancel-activity>Przerwij <kbd>Esc</kbd></button></div>`:available.length?available.map((c,i)=>`<button data-interact="${i}" ${session.paused?'disabled':''}>${i===0?'<kbd>E</kbd>':''}${escape(c.label)}</button>`).join(''):'<span>Podejdź do osoby, rzeczy lub rośliny, aby działać.</span>';
+      const cancel=query<HTMLButtonElement>('[data-cancel-activity]');if(cancel)cancel.onclick=cancelActivity;
       query('.interaction').querySelectorAll<HTMLButtonElement>('[data-interact]').forEach(b=>b.onclick=()=>act(available[Number(b.dataset.interact)].action));
     }
     if(mode==='author')return;
@@ -127,31 +134,34 @@ export function createInterface(container:HTMLElement,session:Session,view:World
       button('near').onclick=()=>{if(mode==='play')changeMode('observe');view.focus(thing.position,5,thing.id);};return;
     }
     selectedThing=null;const resident=session.state.residents.find(r=>r.id===selected)??player;
-    query('.person-details').innerHTML=`<div class="person-head"><h2>${escape(resident.name)}</h2><button data-action="near">Przybliż</button></div><p class="own-reason">${escape(resident.intent.reason)}</p><div class="need"><span>Zmęczenie</span><div><i style="width:${resident.fatigue*100}%"></i></div></div><div class="need"><span>Głód</span><div><i style="width:${resident.hunger*100}%"></i></div></div><h3>Pamięta</h3><ol class="memory">${resident.memories.slice(-4).reverse().map(m=>`<li>${escape(m.detail)}</li>`).join('')||'<li>Własne miejsca i wcześniejsza droga.</li>'}</ol>`;
+    query('.person-details').innerHTML=`<div class="person-head"><h2>${escape(resident.name)}</h2><button data-action="near">Przybliż</button></div><p class="own-reason">${escape(resident.intent.reason)}</p>${resident.concern?`<p class="own-concern"><strong>Sprawa tej osoby${resident.concern.satisfied?' · wykonana':''}</strong>${escape(resident.concern.reason)}</p>`:''}<div class="need"><span>Zmęczenie</span><div><i style="width:${resident.fatigue*100}%"></i></div></div><div class="need"><span>Głód</span><div><i style="width:${resident.hunger*100}%"></i></div></div><h3>Pamięta</h3><ol class="memory">${resident.memories.slice(-4).reverse().map(m=>`<li>${escape(m.detail)}</li>`).join('')||'<li>Własne miejsca i wcześniejsza droga.</li>'}</ol>`;
     button('near').onclick=()=>{if(mode==='play'&&resident.id!==session.player.id)changeMode('observe');view.focus(resident.position,7,resident.id);};
   };
   for(const m of modes)button(m).onclick=()=>changeMode(m);
   button('home').onclick=()=>{changeMode('observe');view.focus(session.state.source.home.position,35);};
   button('realm').onclick=()=>{changeMode('observe');view.focus([0,session.state.source.home.position[1],0],1800);};
   button('pause').onclick=()=>{clearInput();session.paused=!session.paused;update(true);};
-  const autosave=()=>{try{localStorage.setItem(STORAGE,session.save());return true;}catch{return false;}};
+  const autosave=()=>{try{localStorage.setItem(STORAGE_KEY,session.save());return true;}catch{return false;}};
   button('save').onclick=()=>notify(autosave()?'Zachowano historię tej krainy.':'Nie udało się zapisać w przeglądarce. Możesz zachować plik.');
   const load=async(text:string)=>{
     const paused=session.paused;clearInput();clearPreview();session.paused=true;
     try{await session.load(text);selected=session.player.id;selectedThing=null;crouched=session.player.posture>.5;formId=session.state.source.forms?.find(f=>f.kind==='bench')?.id??session.state.source.forms?.[0]?.id??'';pausedBeforeAuthor=true;view.update(session.state);view.setMode?.(mode,session.player.id);view.setSelection?.(mode==='author'?formId:null);updatePeople();if(mode==='author')showAuthor();update(true);notify('Wczytano historię. Wznów czas, gdy zechcesz.');}
     catch(error){session.paused=paused;notify(error instanceof Error?error.message:'Nie udało się wczytać historii.');update(true);}
   };
-  button('load').onclick=()=>{const text=localStorage.getItem(STORAGE);if(text)void load(text);else notify('Nie ma jeszcze zapisu w tej przeglądarce.');};
+  button('load').onclick=()=>{const text=localStorage.getItem(STORAGE_KEY);if(text)void load(text);else notify('Nie ma jeszcze zapisu w tej przeglądarce.');};
   button('export').onclick=()=>{try{const url=URL.createObjectURL(new Blob([session.save()],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='MiniFeniks-kraina.json';a.click();window.setTimeout(()=>URL.revokeObjectURL(url),1000);}catch{notify('Nie udało się przygotować pliku historii.');}};
+  button('play-report').onclick=()=>{try{const text=JSON.stringify(createPlayReport(session.state),null,2),url=URL.createObjectURL(new Blob([text],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='MiniFeniks-slad-gry.json';a.click();window.setTimeout(()=>URL.revokeObjectURL(url),1000);notify('Przygotowano ślad gry do pobrania. To wyciąg z gry, nie zapis krainy.');}catch{notify('Nie udało się przygotować śladu gry.');}};
   button('import').onclick=()=>query<HTMLInputElement>('[data-import]').click();
   query<HTMLInputElement>('[data-import]').onchange=async e=>{const input=e.target as HTMLInputElement,file=input.files?.[0];if(file){if(file.size>4_000_000){notify('Plik jest zbyt duży dla tego zapisu.');input.value='';return;}await load(await file.text());input.value='';}};
   const onKeyDown=(e:KeyboardEvent)=>{
     if(isTextEntry(e.target)||e.altKey)return;
     if(e.code==='Escape'&&mode==='author'){e.preventDefault();clearPreview();showAuthor();return;}
     if(mode==='author'&&(e.ctrlKey||e.metaKey)&&e.code==='KeyZ'){e.preventDefault();button(e.shiftKey?'redo':'undo').click();return;}
+    if(e.code==='Escape'&&mode==='play'&&session.player.activity){e.preventDefault();cancelActivity();return;}
     if(e.metaKey||mode!=='play'||session.paused)return;
+    if(!e.repeat&&['KeyR','KeyT','KeyG'].includes(e.code)&&session.player.holding){e.preventDefault();adjustCarry(e.code==='KeyR'?(e.shiftKey?-1:1)*Math.PI/12:0,e.code==='KeyT'?.15:e.code==='KeyG'?-.15:0);return;}
     if(movementCodes.has(e.code)){e.preventDefault();held.add(e.code);updateMovement();}
-    if(!e.repeat&&e.code==='KeyE'){e.preventDefault();const first=candidates()[0];if(first)act(first.action);else notify('Podejdź do dostępnej osoby, rzeczy lub rośliny.');}
+    if(!e.repeat&&e.code==='KeyE'){e.preventDefault();const first=candidates()[0];if(first)act(first.action);else notify(session.player.activity?'Trwa czynność. Esc, aby przerwać.':'Podejdź do dostępnej osoby, rzeczy lub rośliny.');}
     if(!e.repeat&&e.code==='KeyC'){e.preventDefault();crouched=!crouched;session.setPlayerPosture(crouched?1:0);update(true);}
   };
   const onKeyUp=(e:KeyboardEvent)=>{if(held.delete(e.code)){e.preventDefault();updateMovement();}};
@@ -171,7 +181,7 @@ export function createInterface(container:HTMLElement,session:Session,view:World
       if(hit.kind==='part'){const form=formForPart(session.state.source,hit.id);if(form){clearPreview();formId=form.id;view.setSelection?.(formId);showAuthor();}}
       return;
     }
-    if(hit.kind==='resident'){selected=hit.id;selectedThing=null;updatePeople();update(true);}
+    if(hit.kind==='resident'){selected=hit.id;selectedThing=null;if(mode==='play'&&hit.id!==session.player.id)changeMode('observe');updatePeople();update(true);}
     if(hit.kind==='thing'){selectedThing=hit.id;updatePeople();update(true);}
   };
   land.addEventListener('pointerdown',onDown as EventListener);land.addEventListener('pointerup',onUp as EventListener);
