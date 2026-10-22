@@ -27,11 +27,11 @@ const drive = (s:Awaited<ReturnType<typeof createSession>>,target:Vec3,maxSecond
 /** Natural-body A/B. No actor or player teleport after a matched saved native World.
  * Scripted inputs are not a human playtest. Both arms share exactly the same route.
  */
-it('native player reaches, takes and leaves physical cache; Mira responds during unforced native life',async()=>{
+it.each([0,7])('native player reach and resident response with Mira start offset +%s m',async(offset)=>{
   const w=createWorld(createRegion());w.source.extent=[200,200];
   const initialMira=w.residents.find(r=>r.name==='Mira')!;
   initialMira.hunger=.15;initialMira.fatigue=.1;
-  initialMira.position=[1.7,heightAt(1.7,8)+.9,8];
+  initialMira.position=[1.7+offset,heightAt(1.7+offset,8)+.9,8];
   const seed=await createSession(w,heightAt);
   let snapshot='';
   try{
@@ -85,7 +85,7 @@ it('native player reaches, takes and leaves physical cache; Mira responds during
   const A=await arm(false);
   const B=await arm(true);
   const C=await arm(true,true);
-  console.info('OWNER_NATIVE_RETURN',JSON.stringify({cache:cache.id,portion:portion.id,initialMira:fmt(initialMiraSnapshot.position),A,B,C}));
+  console.info('OWNER_NATIVE_RETURN',JSON.stringify({offset,cache:cache.id,portion:portion.id,initialMira:fmt(initialMiraSnapshot.position),A,B,C}));
   expect(A.arrival.minDistance,'control player never reached reachable cache vicinity').toBeLessThan(2);
   expect(B.arrival.minDistance,'intervention player never reached cache vicinity').toBeLessThan(2);
   expect(B.pickup.accepted,'real pickup could not be performed after a native walking trajectory').toBe(true);
