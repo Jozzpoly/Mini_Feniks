@@ -1,0 +1,22 @@
+name: Research return consequences (isolated)
+on:
+  pull_request:
+    paths:
+      - 'tests/owner-return-consequences.test.ts'
+      - '.github/workflows/research-return-consequences.yml'
+  workflow_dispatch:
+jobs:
+  native-return:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npx vitest run tests/owner-return-consequences.test.ts --maxWorkers=1 --reporter=verbose
+      - run: npm run typecheck
