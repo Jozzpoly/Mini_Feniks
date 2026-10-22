@@ -110,7 +110,10 @@ it.each([0,7])('native player reach and resident response with Mira start offset
   // Same source run through the same body-controlled arrival and departure.
   expect(A.arrival.from).toEqual(B.arrival.from);
   expect(A.arrival.to).toEqual(B.arrival.to);
-  expect(A.leave.to).toEqual(B.leave.to);
+  // After an actual pickup the carried mass changes body dynamics. Compare
+  // arrival in the same human-scale region, not exact physical trajectories.
+  expect(Math.hypot(A.leave.to[0]-B.leave.to[0], A.leave.to[2]-B.leave.to[2]))
+    .toBeLessThan(.15);
   // Merely reading a full reserve at the end would miss that it was rebuilt.
   expect(A.snapshots[0].known).toBe(true);
   expect(B.snapshots[0].known).toBe(false);
