@@ -4,6 +4,7 @@ on:
     paths:
       - 'tests/owner-return-consequences.test.ts'
       - 'tests/owner-return-native.test.ts'
+      - 'tests/owner-life-baseline.test.ts'
       - '.github/workflows/research-return-consequences.yml'
   workflow_dispatch:
 jobs:
@@ -19,5 +20,5 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
-      - run: npx vitest run tests/owner-return-consequences.test.ts tests/owner-return-native.test.ts --maxWorkers=1 --reporter=verbose
+      - run: npx vitest run tests/owner-return-consequences.test.ts tests/owner-return-native.test.ts tests/owner-life-baseline.test.ts --maxWorkers=1 --reporter=verbose
       - run: npm run typecheck
