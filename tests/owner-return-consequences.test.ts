@@ -89,6 +89,7 @@ it('return to a changed reserve: lawful player removal changes the future only a
     observeResident(w, r);
     expect(r.knownThings.find(t => t.id === selected.id)).toEqual(privateBefore);
     // A matched witness at the former store location. Not a movement claim.
+    const beforeReturnMemoryLength = r.memories.length;
     r.position = [selected.position[0] + .2, selected.position[1], selected.position[2] + .2];
     observeResident(w, r);
     const after = r.knownThings.find(t => t.id === selected.id);
@@ -97,7 +98,7 @@ it('return to a changed reserve: lawful player removal changes the future only a
       privateBefore: privateBefore?.available, privateAfter: after?.available,
       satisfied: r.concern?.satisfied, next: next?.goal ?? null,
       distant: distantConcern?.goal ?? null,
-      sawChange: r.memories.some(m => m.kind === 'saw' && m.target === selected.id && m.time > resident.concern!.startedAt),
+      newWitnesses: r.memories.slice(beforeReturnMemoryLength).filter(m => m.kind === 'saw' && m.target === selected.id).map(m => m.detail),
     };
   };
 
@@ -110,6 +111,10 @@ it('return to a changed reserve: lawful player removal changes the future only a
   expect(B.privateAfter).toBe(false);
   expect(A.satisfied).toBe(true);
   expect(B.satisfied).toBe(false);
+  expect(A.next).toBeNull();
+  expect(B.next).toBe('gather');
+  expect(A.newWitnesses).toHaveLength(0);
+  expect(B.newWitnesses.length).toBeGreaterThan(0);
   console.info('OWNER_RETURN_AB', JSON.stringify({ reserve: reserve.id, portion: selected.id, A, B,
     caveat: 'controlled player and witness placement; real walking and subjective play remain untested' }));
 }, 30_000);
