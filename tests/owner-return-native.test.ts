@@ -49,18 +49,30 @@ it.each([0,7])('native player reach and resident response with Mira start offset
   const portion=portions.find(t=>t.id!=='thing:food')??portions[0];
   expect(portion).toBeDefined();
 
+  // Reproduce the negative direct approach independently before testing a
+  // non-teleport, user-like detour around the material table.
+  let failedStraight:ReturnType<typeof drive>|undefined;
+  if(offset===7){
+    const straight=await createSession(decodeCheckpoint(snapshot),heightAt);
+    try{failedStraight=drive(straight,[...portion.position],80,1.2);}
+    finally{straight.dispose();}
+    expect(failedStraight.minDistance,'the earlier direct-route obstruction changed').toBeGreaterThan(2);
+  }
   const arm=async(take:boolean,reloadAfterPickup=false)=>{
     const s=await createSession(decodeCheckpoint(snapshot),heightAt);
     try{
       const start=[...s.player.position] as Vec3;
       const target=s.state.things.find(t=>t.id===portion.id)!;
       // Traverse through native steps towards the actual dynamically tracked portion.
+      const waypoint:Vec3=[target.position[0],target.position[1],target.position[2]+3];
+      const staging=offset===7?drive(s,waypoint,60,.9):null;
       const arrival=drive(s,[...target.position],80,1.2);
       const distance=flat(s.player.position,s.state.things.find(t=>t.id===portion.id)!.position);
       const atArrival={mira:fmt(s.state.residents.find(r=>r.name==='Mira')!.position),player:fmt(s.player.position),item:fmt(s.state.things.find(t=>t.id===portion.id)!.position)};
       let pickup={accepted:false,reason:'control arm'};
       if(take)pickup=s.act({kind:'pickup',targetId:portion.id});
       if(reloadAfterPickup&&pickup.accepted)await s.load(s.save());
+      const returnStaging=offset===7?drive(s,waypoint,60,.9):null;
       const leave=drive(s,start,80,1.25);
       const snapshots:Array<{seconds:number;goal:string;concern:boolean;reserve:number;known:boolean|null;position:number[];gathered:number}>=[];
       const begin=s.state.seconds;
@@ -78,16 +90,18 @@ it.each([0,7])('native player reach and resident response with Mira start offset
         if(i===100||i===300||i===600||i===1500)sample(i*.1);
       }
       const selected=s.state.things.find(t=>t.id===portion.id)!;
-      return {take,reloadAfterPickup,initial:fmt(start),arrival,distance:+distance.toFixed(2),atArrival,pickup,leave,
+      return {take,reloadAfterPickup,route:offset===7?'north-side detour':'direct',staging,returnStaging,initial:fmt(start),arrival,distance:+distance.toFixed(2),atArrival,pickup,leave,
         actualHeldBy:selected.heldBy,steps:s.physics.metrics.steps,elapsed:+(s.state.seconds-begin).toFixed(2),snapshots};
     }finally{s.dispose();}
   };
   const A=await arm(false);
   const B=await arm(true);
   const C=await arm(true,true);
-  console.info('OWNER_NATIVE_RETURN',JSON.stringify({offset,cache:cache.id,portion:portion.id,initialMira:fmt(initialMiraSnapshot.position),A,B,C}));
+  console.info('OWNER_NATIVE_RETURN',JSON.stringify({offset,failedStraight,cache:cache.id,portion:portion.id,initialMira:fmt(initialMiraSnapshot.position),A,B,C}));
   expect(A.arrival.minDistance,'control player never reached reachable cache vicinity').toBeLessThan(2);
   expect(B.arrival.minDistance,'intervention player never reached cache vicinity').toBeLessThan(2);
+  expect(A.leave.minDistance,'control player did not return to its starting area').toBeLessThan(2);
+  expect(B.leave.minDistance,'intervention player did not return to its starting area').toBeLessThan(2);
   expect(B.pickup.accepted,'real pickup could not be performed after a native walking trajectory').toBe(true);
   expect(A.pickup.accepted).toBe(false);
   expect(B.actualHeldBy).toBe('player:jozz');
