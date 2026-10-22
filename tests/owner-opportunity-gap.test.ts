@@ -43,12 +43,12 @@ it('perceived material novelty versus actual intention during otherwise quiet li
       }
     }
     if(mode==='C-hunger') mira.hunger=.9; // NOT comparable biology; sensitivity control only.
+    const initialHunger=+mira.hunger.toFixed(3);
     const s=await createSession(state,heightAt);
     try{
       let quietTicks=0,movementTicks=0,goalTargetsNew=0;
       const goals=new Set<string>(),progress:unknown[]=[];
       let newWitnessed=false;
-      const oldEvents=new Map<string,number>();
       for(let i=0;i<1200;i++){
         s.advance(.1);
         const r=s.state.residents.find(x=>x.name==='Mira')!;
@@ -65,7 +65,7 @@ it('perceived material novelty versus actual intention during otherwise quiet li
       }
       const r=s.state.residents.find(x=>x.name==='Mira')!;
       return {
-        mode,initialHunger:mode==='C-hunger'?.9:+mira.hunger.toFixed(3),
+        mode,initialHunger,
         quietPct:+(quietTicks/12).toFixed(1),movingPct:+(movementTicks/12).toFixed(1),
         sawMaterial:newWitnessed,knownNewMaterials:created.filter(id=>r.knownThings.some(k=>k.id===id)).length,
         goalTargetsNew,newMaterialActions:s.state.events.filter(e=>e.actor===r.id&&created.includes(e.target)&&['picked','placed','gathered'].includes(e.kind)).length,
