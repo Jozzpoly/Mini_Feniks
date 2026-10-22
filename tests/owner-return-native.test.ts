@@ -49,7 +49,7 @@ it('native player reaches, takes and leaves physical cache; Mira responds during
   const portion=portions.find(t=>t.id!=='thing:food')??portions[0];
   expect(portion).toBeDefined();
 
-  const arm=async(take:boolean)=>{
+  const arm=async(take:boolean,reloadAfterPickup=false)=>{
     const s=await createSession(decodeCheckpoint(snapshot),heightAt);
     try{
       const start=[...s.player.position] as Vec3;
@@ -60,6 +60,7 @@ it('native player reaches, takes and leaves physical cache; Mira responds during
       const atArrival={mira:fmt(s.state.residents.find(r=>r.name==='Mira')!.position),player:fmt(s.player.position),item:fmt(s.state.things.find(t=>t.id===portion.id)!.position)};
       let pickup={accepted:false,reason:'control arm'};
       if(take)pickup=s.act({kind:'pickup',targetId:portion.id});
+      if(reloadAfterPickup&&pickup.accepted)await s.load(s.save());
       const leave=drive(s,start,80,1.25);
       const snapshots:Array<{seconds:number;goal:string;concern:boolean;reserve:number;known:boolean|null;position:number[];gathered:number}>=[];
       const begin=s.state.seconds;
@@ -77,16 +78,34 @@ it('native player reaches, takes and leaves physical cache; Mira responds during
         if(i===100||i===300||i===600||i===1500)sample(i*.1);
       }
       const selected=s.state.things.find(t=>t.id===portion.id)!;
-      return {take,initial:fmt(start),arrival,distance:+distance.toFixed(2),atArrival,pickup,leave,
+      return {take,reloadAfterPickup,initial:fmt(start),arrival,distance:+distance.toFixed(2),atArrival,pickup,leave,
         actualHeldBy:selected.heldBy,steps:s.physics.metrics.steps,elapsed:+(s.state.seconds-begin).toFixed(2),snapshots};
     }finally{s.dispose();}
   };
   const A=await arm(false);
   const B=await arm(true);
-  console.info('OWNER_NATIVE_RETURN',JSON.stringify({cache:cache.id,portion:portion.id,initialMira:fmt(initialMiraSnapshot.position),A,B}));
+  const C=await arm(true,true);
+  console.info('OWNER_NATIVE_RETURN',JSON.stringify({cache:cache.id,portion:portion.id,initialMira:fmt(initialMiraSnapshot.position),A,B,C}));
   expect(A.arrival.minDistance,'control player never reached reachable cache vicinity').toBeLessThan(2);
   expect(B.arrival.minDistance,'intervention player never reached cache vicinity').toBeLessThan(2);
   expect(B.pickup.accepted,'real pickup could not be performed after a native walking trajectory').toBe(true);
   expect(A.pickup.accepted).toBe(false);
   expect(B.actualHeldBy).toBe('player:jozz');
-},60000);
+  expect(C.pickup.accepted).toBe(true);
+  expect(C.actualHeldBy).toBe('player:jozz');
+  // Same source run through the same body-controlled arrival and departure.
+  expect(A.arrival.from).toEqual(B.arrival.from);
+  expect(A.arrival.to).toEqual(B.arrival.to);
+  expect(A.leave.to).toEqual(B.leave.to);
+  // Merely reading a full reserve at the end would miss that it was rebuilt.
+  expect(A.snapshots[0].known).toBe(true);
+  expect(B.snapshots[0].known).toBe(false);
+  expect(C.snapshots[0].known).toBe(false);
+  expect(A.snapshots.at(-1)!.concern).toBe(true);
+  expect(B.snapshots.at(-1)!.concern).toBe(true);
+  expect(C.snapshots.at(-1)!.concern).toBe(true);
+  expect(B.snapshots.at(-1)!.gathered).toBeGreaterThan(A.snapshots.at(-1)!.gathered);
+  expect(C.snapshots.at(-1)!.gathered).toBeGreaterThan(A.snapshots.at(-1)!.gathered);
+  expect(B.snapshots.at(-1)!.reserve).toBeGreaterThanOrEqual(B.snapshots[0].reserve);
+  expect(C.snapshots.at(-1)!.reserve).toBeGreaterThanOrEqual(C.snapshots[0].reserve);
+},75000);
